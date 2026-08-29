@@ -12,20 +12,27 @@
 | 디렉터리 | 내용 | 스택 | 상태 |
 | --- | --- | --- | --- |
 | [`backend/`](backend/) | API 서버 | NestJS · Prisma · PostgreSQL · Anthropic Claude | 스캐폴딩 완료 |
-| `mobile/` | 모바일 앱 (예정) | React Native | 미시작 |
+| [`mobile/`](mobile/) | 모바일 앱 | Expo (SDK 57) · React Native · expo-router | 스캐폴딩 완료 (5탭 + 백엔드 연동) |
 
 ## 시작하기
 
 ```bash
+# 1) 백엔드
 cd backend
 npm install
 cp .env.example .env
 npm run prisma:generate
 npm run prisma:migrate
-npm run start:dev
+npm run prisma:seed          # demo@crm.local / demo1234
+npm run start:dev            # http://localhost:3000/api
+
+# 2) 모바일 (별도 터미널)
+cd ../mobile
+npm install
+npx expo start              # Expo Go 로 스캔 · a/i/w
 ```
 
-자세한 내용은 [backend/README.md](backend/README.md) 참고.
+자세한 내용은 [backend/README.md](backend/README.md) · [mobile/README.md](mobile/README.md) 참고.
 
 ## MVP 범위 (PRD 26)
 
