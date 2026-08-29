@@ -1,0 +1,181 @@
+import { API_BASE_URL } from './config';
+
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+type Query = Record<string, string | number | undefined | null>;
+
+let authToken: string | null = null;
+
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
+
+async function request<T>(
+  path: string,
+  options: { method?: string; body?: unknown; query?: Query } = {},
+): Promise<T> {
+  // RN 의 URL/URLSearchParams 폴리필이 불완전하므로 쿼리스트링을 직접 만든다.
+  let url = API_BASE_URL + path;
+  if (options.query) {
+    const parts = Object.entries(options.query)
+      .filter(([, v]) => v !== undefined && v !== null && v !== '')
+      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`);
+    if (parts.length) url += `?${parts.join('&')}`;
+  }
+
+  const res = await fetch(url, {
+    method: options.method ?? 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (!res.ok) {
+    const message =
+      (data && (data.message || data.error)) || `요청 실패 (${res.status})`;
+    throw new ApiError(res.status, Array.isArray(message) ? message.join(', ') : message);
+  }
+  return data as T;
+}
+
+// --- 타입 (백엔드 응답 최소 형태) ---
+
+export type Priority = 'IMMEDIATE' | 'TODAY' | 'THIS_WEEK' | 'NORMAL';
+
+export interface AuthResult {
+  accessToken: string;
+  user: { id: string; email: string; name: string };
+}
+
+export interface Recommendation {
+  score: number;
+  priority: Priority;
+  reason: string;
+  recommendation: string;
+  recommendedChannel?: string | null;
+}
+
+export interface CustomerTag {
+  id: string;
+  tag: string;
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+  grade: string;
+  interests: string[];
+  consultStatus: string;
+  lastContactAt: string | null;
+  nextContactAt: string | null;
+  tags: CustomerTag[];
+  recommendation?: Recommendation | null;
+}
+
+export interface CustomerListResponse {
+  total: number;
+  page: number;
+  pageSize: number;
+  items: Customer[];
+}
+
+export interface DashboardCareItem {
+  customerId: string;
+  name: string;
+  score: number;
+  priority: Priority;
+  reason: string;
+  recommendation: string;
+  recommendedChannel?: string | null;
+  interests: string[];
+  lastContactAt: string | null;
+}
+
+export interface Dashboard {
+  counts: Record<Priority, number>;
+  needsCareToday: DashboardCareItem[];
+}
+
+export interface Schedule {
+  id: string;
+  title: string;
+  scheduleDate: string;
+  type: string;
+  status: string;
+  customer?: { id: string; name: string; phone: string } | null;
+}
+
+export interface WeeklyReport {
+  periodStart: string;
+  stats: {
+    total: number;
+    newCustomers: number;
+    consulted: number;
+    longUnmanaged: number;
+  };
+  analysis: string;
+}
+
+// --- 엔드포인트 ---
+
+export const api = {
+  register: (body: {
+    name: string;
+    email: string;
+    password: string;
+    occupation?: string;
+  }) => request<AuthResult>('/auth/register', { method: 'POST', body }),
+
+  login: (body: { email: string; password: string }) =>
+    request<AuthResult>('/auth/login', { method: 'POST', body }),
+
+  me: () => request<{ userId: string; email: string }>('/auth/me'),
+
+  dashboard: () => request<Dashboard>('/ai/dashboard'),
+
+  weeklyReport: () => request<WeeklyReport>('/ai/report/weekly'),
+
+  recompute: () => request<{ updated: number }>('/ai/recompute', { method: 'POST' }),
+
+  customers: (query?: { q?: string; filter?: string; sort?: string; page?: number }) =>
+    request<CustomerListResponse>('/customers', { query }),
+
+  customer: (id: string) => request<Customer>(`/customers/${id}`),
+
+  nextActions: (customerId: string) =>
+    request<string[]>(`/ai/customers/${customerId}/next-actions`),
+
+  analyze: (customerId: string) =>
+    request<Recommendation>(`/ai/customers/${customerId}/analyze`, { method: 'POST' }),
+
+  generateMessage: (
+    customerId: string,
+    body: { purpose: string; tone?: string; context?: string },
+  ) => request<{ content: string }>(`/ai/customers/${customerId}/message`, { method: 'POST', body }),
+
+  schedulesToday: () => request<Schedule[]>('/schedules/today'),
+
+  schedules: (query?: { from?: string; to?: string }) =>
+    request<Schedule[]>('/schedules', { query }),
+};
+
+export const PRIORITY_LABEL: Record<Priority, string> = {
+  IMMEDIATE: '🔴 즉시',
+  TODAY: '🟠 오늘',
+  THIS_WEEK: '🟡 이번 주',
+  NORMAL: '🟢 정상',
+};
