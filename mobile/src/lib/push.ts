@@ -23,6 +23,7 @@ export interface PushToken {
  * Android 는 내부적으로 FCM, iOS 는 APNs 로 전달된다.
  */
 export async function registerForPushNotifications(): Promise<PushToken | null> {
+  if (Platform.OS === 'web') return null; // 웹은 Expo 푸시 토큰 미지원
   if (!Device.isDevice) return null;
 
   if (Platform.OS === 'android') {

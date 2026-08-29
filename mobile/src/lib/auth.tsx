@@ -1,4 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
+import { storage } from './storage';
 import {
   createContext,
   useCallback,
@@ -36,7 +36,7 @@ async function syncPushToken(): Promise<void> {
     const push = await registerForPushNotifications();
     if (!push) return;
     await api.registerDevice(push);
-    await SecureStore.setItemAsync(PUSH_KEY, push.token);
+    await storage.setItem(PUSH_KEY, push.token);
   } catch {
     // 무시: 푸시는 부가 기능
   }
@@ -51,8 +51,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         const [savedToken, savedUser] = await Promise.all([
-          SecureStore.getItemAsync(TOKEN_KEY),
-          SecureStore.getItemAsync(USER_KEY),
+          storage.getItem(TOKEN_KEY),
+          storage.getItem(USER_KEY),
         ]);
         if (savedToken) {
           setToken(savedToken);
@@ -71,8 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(result.user);
     setAuthToken(result.accessToken);
     await Promise.all([
-      SecureStore.setItemAsync(TOKEN_KEY, result.accessToken),
-      SecureStore.setItemAsync(USER_KEY, JSON.stringify(result.user)),
+      storage.setItem(TOKEN_KEY, result.accessToken),
+      storage.setItem(USER_KEY, JSON.stringify(result.user)),
     ]);
     void syncPushToken();
   }, []);
@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
-    const pushToken = await SecureStore.getItemAsync(PUSH_KEY);
+    const pushToken = await storage.getItem(PUSH_KEY);
     if (pushToken) {
       try {
         await api.unregisterDevice(pushToken);
@@ -118,9 +118,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setAuthToken(null);
     await Promise.all([
-      SecureStore.deleteItemAsync(TOKEN_KEY),
-      SecureStore.deleteItemAsync(USER_KEY),
-      SecureStore.deleteItemAsync(PUSH_KEY),
+      storage.removeItem(TOKEN_KEY),
+      storage.removeItem(USER_KEY),
+      storage.removeItem(PUSH_KEY),
     ]);
   }, []);
 
