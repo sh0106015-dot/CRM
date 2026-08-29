@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -19,8 +19,7 @@ async function bootstrap() {
 
   const port = config.get<number>('PORT', 3000);
   await app.listen(port);
-  // eslint-disable-next-line no-console
-  console.log(`CRM API listening on http://localhost:${port}/api`);
+  Logger.log(`CRM API listening on http://localhost:${port}/api`, 'Bootstrap');
 }
 
 void bootstrap();

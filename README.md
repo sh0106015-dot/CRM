@@ -1,5 +1,7 @@
 # AI 스마트 고객관리 플랫폼
 
+[![CI](https://github.com/sh0106015-dot/CRM/actions/workflows/ci.yml/badge.svg)](https://github.com/sh0106015-dot/CRM/actions/workflows/ci.yml)
+
 > AI가 고객을 분석하고, 누구에게 언제 무엇을 해야 하는지 알려주는 영업관리 플랫폼
 
 보험설계사·상담 영업인을 위한 CRM. 고객정보 저장에 그치지 않고 AI가 데이터를 분석해
@@ -33,6 +35,15 @@ npx expo start              # Expo Go 로 스캔 · a/i/w
 ```
 
 자세한 내용은 [backend/README.md](backend/README.md) · [mobile/README.md](mobile/README.md) 참고.
+
+## CI
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) — `main` push / PR 시 실행.
+
+| Job | 단계 |
+| --- | --- |
+| **backend** | `prisma generate` → `lint:ci` (eslint) → `build` → `test` (unit) → `migrate deploy` (Postgres 16 서비스) → `test:e2e` |
+| **mobile** | `expo export --platform android` (번들 검증) → `tsc --noEmit` → `expo lint` |
 
 ## MVP 범위 (PRD 26)
 
