@@ -5,8 +5,13 @@
   "author": "sh0106015",
   "private": true,
   "license": "UNLICENSED",
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "scripts": {
     "build": "nest build",
+    "prisma:seed": "prisma db seed",
+    "prisma:reset": "prisma migrate reset",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
