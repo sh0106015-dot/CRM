@@ -206,6 +206,50 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
     expect(Array.isArray(dash.body.needsCareToday)).toBe(true);
   });
 
+  // --- OAuth ----------------------------------------------------------
+  it('OAuth — 미구성 서버는 401, 형식 오류는 400', async () => {
+    // idToken 누락 → 400 (validation)
+    await http.post('/api/auth/oauth/google').send({}).expect(400);
+    // 구성 안 됨(GOOGLE_CLIENT_ID 미설정) 또는 잘못된 토큰 → 401
+    await http
+      .post('/api/auth/oauth/google')
+      .send({ idToken: 'not-a-real-token' })
+      .expect(401);
+    await http
+      .post('/api/auth/oauth/apple')
+      .send({ identityToken: 'not-a-real-token' })
+      .expect(401);
+  });
+
+  // --- 푸시 알림 -----------------------------------------------------
+  it('디바이스 토큰 등록/해제 + 다이제스트 수동 실행', async () => {
+    const token = `ExponentPushToken[e2e-${stamp}]`;
+
+    await http.post('/api/devices').expect(401); // 인증 필요
+    const reg = await http
+      .post('/api/devices')
+      .set(auth(tokenA))
+      .send({ token, platform: 'ANDROID' })
+      .expect(201);
+    expect(reg.body.token).toBe(token);
+
+    // 재등록(upsert) 도 성공해야 한다
+    await http.post('/api/devices').set(auth(tokenA)).send({ token }).expect(201);
+
+    const digest = await http
+      .post('/api/notifications/daily-digest/run')
+      .set(auth(tokenA))
+      .expect(201);
+    expect(digest.body).toHaveProperty('body');
+    expect(digest.body).toHaveProperty('careCount');
+    expect(digest.body.deviceCount).toBeGreaterThanOrEqual(1);
+
+    await http
+      .delete(`/api/devices/${encodeURIComponent(token)}`)
+      .set(auth(tokenA))
+      .expect(200);
+  });
+
   // --- 테넌트 격리 ----------------------------------------------------
   it('다른 사용자는 남의 고객에 접근 불가 (404)', async () => {
     const reg = await http.post('/api/auth/register').send(userB).expect(201);

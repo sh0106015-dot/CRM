@@ -8,7 +8,9 @@
     "scheme": "mobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "usesAppleSignIn": true,
+      "bundleIdentifier": "local.crm.mobile"
     },
     "android": {
       "adaptiveIcon": {
@@ -33,11 +35,25 @@
           "imageWidth": 76
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-apple-authentication",
+      [
+        "expo-notifications",
+        {
+          "color": "#208AEF"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "googleClientIds": {
+        "ios": null,
+        "android": null,
+        "web": null
+      }
     }
   }
 }

@@ -4,7 +4,8 @@ AI 스마트 고객관리 플랫폼의 모바일 앱.
 
 - **프레임워크**: Expo SDK 57 · React Native 0.86 · expo-router (파일 기반 라우팅)
 - **네비게이션**: 하단 5탭 (`홈 / 고객 / AI추천 / 일정 / 설정`) — `expo-router/unstable-native-tabs`
-- **인증**: JWT, 토큰은 `expo-secure-store` 에 저장
+- **인증**: 이메일/비번 + Google(`expo-auth-session`) + Apple(`expo-apple-authentication`). JWT 토큰은 `expo-secure-store` 에 저장
+- **푸시**: `expo-notifications` — 로그인 시 Expo 푸시 토큰을 `/devices` 로 등록, 로그아웃 시 해제
 - **백엔드**: `../backend` (NestJS, 기본 `:3000`)
 
 ## 실행
@@ -21,6 +22,14 @@ npx expo start          # QR 로 Expo Go 실행, 또는 a(안드로이드) / i(i
 cd ../backend && npm run start:dev      # 별도 터미널
 # (최초 1회) npm run prisma:seed  →  demo@crm.local / demo1234
 ```
+
+## OAuth / 푸시 설정 (선택)
+
+- **Google**: `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` / `_ANDROID_CLIENT_ID` / `_WEB_CLIENT_ID`
+  (또는 `app.json` `extra.googleClientIds`). 미설정 시 버튼은 "구성 필요" 로 비활성.
+- **Apple**: iOS 실기기/시뮬레이터에서만 노출. `app.json` `ios.usesAppleSignIn: true` 설정됨.
+- **푸시**: 실기기에서만 토큰이 발급되며, 백엔드가 Expo Push Service 로 전달.
+  백엔드에 `GOOGLE_CLIENT_ID` / `APPLE_CLIENT_ID` 도 함께 설정해야 검증이 통과한다.
 
 ## 백엔드 주소 설정
 

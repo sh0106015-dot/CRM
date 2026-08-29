@@ -62,6 +62,12 @@ enum RecommendationPriority {
   NORMAL // 🟢 정상 관리
 }
 
+enum DevicePlatform {
+  IOS
+  ANDROID
+  WEB
+}
+
 // ---------------------------------------------------------------------------
 // Models
 // ---------------------------------------------------------------------------
@@ -79,10 +85,26 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  customers Customer[]
+  customers    Customer[]
+  deviceTokens DeviceToken[]
 
   @@index([provider, providerId])
   @@map("users")
+}
+
+/// FCM / Expo 푸시 토큰 (PRD 19 알림 시스템)
+model DeviceToken {
+  id         String         @id @default(cuid())
+  userId     String
+  token      String         @unique
+  platform   DevicePlatform @default(ANDROID)
+  lastSeenAt DateTime       @default(now())
+  createdAt  DateTime       @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("device_tokens")
 }
 
 model Customer {

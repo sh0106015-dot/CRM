@@ -36,6 +36,10 @@ docker run --name crm-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=crm 
 | `JWT_EXPIRES_IN` | 토큰 만료 | `7d` |
 | `ANTHROPIC_API_KEY` | Claude API 키 (없으면 규칙 기반 폴백) | — |
 | `AI_MODEL` | 사용 모델 | `claude-opus-5` |
+| `GOOGLE_CLIENT_ID` | Google OAuth 클라이언트 ID (콤마로 복수) — 없으면 401 | — |
+| `APPLE_CLIENT_ID` | Apple 서비스/번들 ID — 없으면 401 | — |
+| `EXPO_ACCESS_TOKEN` | Expo Push 액세스 토큰 (선택) | — |
+| `DIGEST_CRON_ENABLED` | 매일 09:00 다이제스트 크론 | `true` |
 
 ## API 개요 (`/api` prefix)
 
@@ -44,7 +48,23 @@ docker run --name crm-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=crm 
 | --- | --- | --- |
 | POST | `/auth/register` | 회원가입 → `{ accessToken, user }` |
 | POST | `/auth/login` | 로그인 |
+| POST | `/auth/oauth/google` | `{ idToken }` — 앱이 받은 Google ID 토큰 검증 → JWT 발급 |
+| POST | `/auth/oauth/apple` | `{ identityToken, fullName? }` — Apple identity 토큰 검증 → JWT 발급 |
 | GET | `/auth/me` | 내 정보 (Bearer) |
+
+OAuth 는 앱에서 네이티브 로그인 → 공급자 ID 토큰을 서버로 전달 → 서버가 검증 후
+`provider`+`providerId`(없으면 이메일)로 계정을 연결/생성한다. 클라이언트 ID 미설정 시 401.
+
+### 알림 — `NotificationsModule` (PRD 19)
+| Method | Path | 설명 |
+| --- | --- | --- |
+| POST | `/devices` | 푸시 토큰 등록 `{ token, platform }` (앱 시작 시 upsert) |
+| DELETE | `/devices/:token` | 푸시 토큰 해제 (로그아웃 시) |
+| POST | `/notifications/daily-digest/run` | 지금 나에게 다이제스트 발송 (수동/테스트) |
+
+- 발송은 **Expo Push Service** 경유 (`ExponentPushToken[...]`) — Android=FCM, iOS=APNs.
+- 매일 09:00 `DigestScheduler` 크론이 전체 사용자에게 "오늘 관리 추천 N명 · 내일 상담 N건" 푸시.
+- 유효하지 않은 토큰(`DeviceNotRegistered`)은 발송 시 자동 정리.
 
 ### 고객 — `CustomersModule` (PRD 7·8·16·17)
 | Method | Path | 설명 |

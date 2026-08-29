@@ -191,7 +191,30 @@ export const api = {
   login: (body: { email: string; password: string }) =>
     request<AuthResult>('/auth/login', { method: 'POST', body }),
 
+  oauthGoogle: (idToken: string) =>
+    request<AuthResult>('/auth/oauth/google', { method: 'POST', body: { idToken } }),
+
+  oauthApple: (identityToken: string, fullName?: string) =>
+    request<AuthResult>('/auth/oauth/apple', {
+      method: 'POST',
+      body: { identityToken, fullName },
+    }),
+
   me: () => request<{ userId: string; email: string }>('/auth/me'),
+
+  registerDevice: (body: { token: string; platform: 'IOS' | 'ANDROID' | 'WEB' }) =>
+    request<{ id: string; token: string }>('/devices', { method: 'POST', body }),
+
+  unregisterDevice: (token: string) =>
+    request<{ deleted: boolean }>(`/devices/${encodeURIComponent(token)}`, {
+      method: 'DELETE',
+    }),
+
+  runDailyDigest: () =>
+    request<{ body: string; careCount: number; upcoming: number; deviceCount: number }>(
+      '/notifications/daily-digest/run',
+      { method: 'POST' },
+    ),
 
   dashboard: () => request<Dashboard>('/ai/dashboard'),
 
