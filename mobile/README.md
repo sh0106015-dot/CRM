@@ -41,10 +41,13 @@ src/
 ├── app/
 │   ├── _layout.tsx         루트 Stack + 인증 게이트 (미로그인 → /login)
 │   ├── login.tsx           로그인 / 회원가입
+│   ├── customer/
+│   │   ├── [id].tsx        고객 상세 — 기본정보·상태·AI분석·다음행동·상담이력 + 문자 모달
+│   │   └── new.tsx         고객 등록 (모달) — /customers POST
 │   └── (tabs)/
 │       ├── _layout.tsx     NativeTabs 5탭
-│       ├── index.tsx       홈 — /ai/dashboard (우선순위 카운트 + 오늘 관리 대상)
-│       ├── customers.tsx   고객 — /customers (검색 + 점수 배지)
+│       ├── index.tsx       홈 — /ai/dashboard (카드 탭 → 상세)
+│       ├── customers.tsx   고객 — /customers (검색 + 점수 배지 + "+ 등록")
 │       ├── ai.tsx          AI추천 — /ai/dashboard + 재계산(/ai/recompute)
 │       ├── schedule.tsx    일정 — /schedules/today + /schedules
 │       └── settings.tsx    설정 — 계정 정보 · API 주소 · 로그아웃
@@ -54,10 +57,13 @@ src/
 │   ├── auth.tsx            AuthProvider / useAuth (SecureStore)
 │   └── use-async.ts        로드 + pull-to-refresh 훅
 └── components/
-    └── ui-kit.tsx          Card / Button / ScorePill / Loading / ErrorView ...
+    ├── ui-kit.tsx          Card / Button / Chip / LabeledInput / ScorePill ...
+    └── message-modal.tsx   AI 문자 생성 모달 (목적·말투·상황 → /ai/.../message,
+                            복사 + sms: 딥링크)
 ```
 
 ## 상태
 
-스캐폴딩 — 5탭 + 인증 흐름 + 5개 화면이 백엔드 실데이터와 연동됨 (`tsc --noEmit` 통과).
-고객 상세/등록 화면, AI 문자 생성 UI, 푸시 알림(FCM)은 미구현.
+스캐폴딩 — 5탭 + 인증 + 7개 화면(탭 5 + 고객 상세/등록)이 백엔드 실데이터와 연동됨.
+AI 문자 생성 모달 포함. `tsc --noEmit` 통과, Android 번들 성공.
+고객 수정 화면, 상담 기록 작성 UI, 푸시 알림(FCM)은 미구현.

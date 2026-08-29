@@ -1,4 +1,12 @@
-import { ActivityIndicator, Pressable, StyleSheet, View, type ViewProps } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
+  type TextInputProps,
+  type ViewProps,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -7,16 +15,36 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { Priority } from '@/lib/api';
 
-export function ScreenHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+export function ScreenHeader({
+  title,
+  subtitle,
+  right,
+}: {
+  title: string;
+  subtitle?: string;
+  right?: React.ReactNode;
+}) {
   const insets = useSafeAreaInsets();
   return (
-    <View style={{ paddingTop: insets.top + Spacing.three, paddingHorizontal: Spacing.four, paddingBottom: Spacing.three }}>
-      <ThemedText type="subtitle">{title}</ThemedText>
-      {subtitle ? (
-        <ThemedText type="small" themeColor="textSecondary">
-          {subtitle}
-        </ThemedText>
-      ) : null}
+    <View
+      style={{
+        paddingTop: insets.top + Spacing.three,
+        paddingHorizontal: Spacing.four,
+        paddingBottom: Spacing.three,
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        justifyContent: 'space-between',
+        gap: Spacing.three,
+      }}>
+      <View style={{ flexShrink: 1 }}>
+        <ThemedText type="subtitle">{title}</ThemedText>
+        {subtitle ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {subtitle}
+          </ThemedText>
+        ) : null}
+      </View>
+      {right ?? null}
     </View>
   );
 }
@@ -111,6 +139,58 @@ export function ScorePill({ score, priority }: { score: number; priority: Priori
   );
 }
 
+export function Chip({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const theme = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.chip,
+        {
+          backgroundColor: selected ? '#208AEF' : theme.backgroundElement,
+        },
+      ]}>
+      <ThemedText type="small" style={{ color: selected ? '#ffffff' : theme.textSecondary }}>
+        {label}
+      </ThemedText>
+    </Pressable>
+  );
+}
+
+export function LabeledInput({
+  label,
+  hint,
+  ...props
+}: TextInputProps & { label: string; hint?: string }) {
+  const theme = useTheme();
+  return (
+    <View style={{ gap: 4 }}>
+      <ThemedText type="smallBold">
+        {label}
+        {hint ? <ThemedText type="small" themeColor="textSecondary">{`  ${hint}`}</ThemedText> : null}
+      </ThemedText>
+      <TextInput
+        placeholderTextColor={theme.textSecondary}
+        {...props}
+        style={[
+          styles.field,
+          { color: theme.text, backgroundColor: theme.backgroundElement },
+          props.multiline ? { minHeight: 80, textAlignVertical: 'top' } : null,
+          props.style,
+        ]}
+      />
+    </View>
+  );
+}
+
 export function daysSince(iso: string | null): string {
   if (!iso) return '연락 이력 없음';
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
@@ -150,5 +230,16 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  chip: {
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+    borderRadius: Spacing.five,
+  },
+  field: {
+    borderRadius: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+    fontSize: 15,
   },
 });

@@ -1,6 +1,8 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   FlatList,
+  Pressable,
   RefreshControl,
   StyleSheet,
   TextInput,
@@ -10,6 +12,7 @@ import {
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import {
+  Button,
   Card,
   ErrorView,
   Loading,
@@ -25,6 +28,7 @@ import { useAsync } from '@/lib/use-async';
 
 export default function CustomersScreen() {
   const theme = useTheme();
+  const router = useRouter();
   const [q, setQ] = useState('');
   const [submitted, setSubmitted] = useState('');
 
@@ -35,7 +39,11 @@ export default function CustomersScreen() {
 
   return (
     <ThemedView style={styles.flex}>
-      <ScreenHeader title="고객" subtitle={data ? `${data.total}명` : undefined} />
+      <ScreenHeader
+        title="고객"
+        subtitle={data ? `${data.total}명` : undefined}
+        right={<Button label="+ 등록" onPress={() => router.push('/customer/new')} />}
+      />
       <View style={styles.searchWrap}>
         <TextInput
           value={q}
@@ -59,33 +67,39 @@ export default function CustomersScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <Card>
-              <View style={styles.rowBetween}>
-                <ThemedText type="default" style={styles.name}>
-                  {item.name}
-                </ThemedText>
-                {item.recommendation ? (
-                  <ScorePill
-                    score={item.recommendation.score}
-                    priority={item.recommendation.priority}
-                  />
-                ) : null}
-              </View>
-              <Muted>
-                {item.grade} · 마지막 연락 {daysSince(item.lastContactAt)}
-              </Muted>
-              {item.tags.length ? (
-                <View style={styles.tags}>
-                  {item.tags.map((t) => (
-                    <View key={t.id} style={[styles.tag, { borderColor: theme.backgroundSelected }]}>
-                      <ThemedText type="small" themeColor="textSecondary">
-                        {t.tag}
-                      </ThemedText>
-                    </View>
-                  ))}
+            <Pressable
+              onPress={() => router.push(`/customer/${item.id}`)}
+              style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}>
+              <Card>
+                <View style={styles.rowBetween}>
+                  <ThemedText type="default" style={styles.name}>
+                    {item.name}
+                  </ThemedText>
+                  {item.recommendation ? (
+                    <ScorePill
+                      score={item.recommendation.score}
+                      priority={item.recommendation.priority}
+                    />
+                  ) : null}
                 </View>
-              ) : null}
-            </Card>
+                <Muted>
+                  {item.grade} · 마지막 연락 {daysSince(item.lastContactAt)}
+                </Muted>
+                {item.tags.length ? (
+                  <View style={styles.tags}>
+                    {item.tags.map((t) => (
+                      <View
+                        key={t.id}
+                        style={[styles.tag, { borderColor: theme.backgroundSelected }]}>
+                        <ThemedText type="small" themeColor="textSecondary">
+                          {t.tag}
+                        </ThemedText>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
+              </Card>
+            </Pressable>
           )}
           ListEmptyComponent={
             <View style={styles.empty}>

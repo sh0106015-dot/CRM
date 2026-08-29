@@ -77,6 +77,12 @@ export interface Customer {
   id: string;
   name: string;
   phone: string;
+  customerNo?: string | null;
+  birthDate?: string | null;
+  gender?: 'MALE' | 'FEMALE' | 'OTHER' | null;
+  occupation?: string | null;
+  address?: string | null;
+  notes?: string | null;
   grade: string;
   interests: string[];
   consultStatus: string;
@@ -86,11 +92,46 @@ export interface Customer {
   recommendation?: Recommendation | null;
 }
 
+export interface Consultation {
+  id: string;
+  consultationDate: string;
+  content: string;
+  summary?: string | null;
+  nextAction?: string | null;
+  nextContactDate?: string | null;
+}
+
+export interface GeneratedMessage {
+  id: string;
+  purpose: string;
+  tone: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface CustomerDetail extends Customer {
+  consultations: Consultation[];
+  schedules: Schedule[];
+  messages: GeneratedMessage[];
+}
+
 export interface CustomerListResponse {
   total: number;
   page: number;
   pageSize: number;
   items: Customer[];
+}
+
+export interface CreateCustomerInput {
+  name: string;
+  phone: string;
+  birthDate?: string;
+  gender?: 'MALE' | 'FEMALE' | 'OTHER';
+  address?: string;
+  notes?: string;
+  grade?: string;
+  interests?: string[];
+  tags?: string[];
 }
 
 export interface DashboardCareItem {
@@ -154,7 +195,13 @@ export const api = {
   customers: (query?: { q?: string; filter?: string; sort?: string; page?: number }) =>
     request<CustomerListResponse>('/customers', { query }),
 
-  customer: (id: string) => request<Customer>(`/customers/${id}`),
+  customer: (id: string) => request<CustomerDetail>(`/customers/${id}`),
+
+  createCustomer: (body: CreateCustomerInput) =>
+    request<Customer>('/customers', { method: 'POST', body }),
+
+  updateCustomer: (id: string, body: Partial<CreateCustomerInput>) =>
+    request<Customer>(`/customers/${id}`, { method: 'PATCH', body }),
 
   nextActions: (customerId: string) =>
     request<string[]>(`/ai/customers/${customerId}/next-actions`),
@@ -165,7 +212,11 @@ export const api = {
   generateMessage: (
     customerId: string,
     body: { purpose: string; tone?: string; context?: string },
-  ) => request<{ content: string }>(`/ai/customers/${customerId}/message`, { method: 'POST', body }),
+  ) =>
+    request<GeneratedMessage>(`/ai/customers/${customerId}/message`, {
+      method: 'POST',
+      body,
+    }),
 
   schedulesToday: () => request<Schedule[]>('/schedules/today'),
 

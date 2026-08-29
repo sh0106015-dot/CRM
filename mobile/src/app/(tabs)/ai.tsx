@@ -1,5 +1,6 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -17,6 +18,7 @@ import { api, PRIORITY_LABEL } from '@/lib/api';
 import { useAsync } from '@/lib/use-async';
 
 export default function AiScreen() {
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const { data, error, loading, refreshing, reload, refresh } = useAsync(
     () => api.dashboard(),
@@ -58,18 +60,22 @@ export default function AiScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <Card>
-            <View style={styles.rowBetween}>
-              <ThemedText type="default" style={styles.name}>
-                {item.name}
-              </ThemedText>
-              <ScorePill score={item.score} priority={item.priority} />
-            </View>
-            <Muted>
-              {PRIORITY_LABEL[item.priority]} · {item.reason}
-            </Muted>
-            <ThemedText type="small">👉 {item.recommendation}</ThemedText>
-          </Card>
+          <Pressable
+            onPress={() => router.push(`/customer/${item.customerId}`)}
+            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}>
+            <Card>
+              <View style={styles.rowBetween}>
+                <ThemedText type="default" style={styles.name}>
+                  {item.name}
+                </ThemedText>
+                <ScorePill score={item.score} priority={item.priority} />
+              </View>
+              <Muted>
+                {PRIORITY_LABEL[item.priority]} · {item.reason}
+              </Muted>
+              <ThemedText type="small">👉 {item.recommendation}</ThemedText>
+            </Card>
+          </Pressable>
         )}
         ListEmptyComponent={
           <View style={styles.empty}>

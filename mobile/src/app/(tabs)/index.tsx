@@ -1,4 +1,5 @@
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -20,6 +21,7 @@ const ORDER: Priority[] = ['IMMEDIATE', 'TODAY', 'THIS_WEEK', 'NORMAL'];
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const router = useRouter();
   const { data, error, loading, refreshing, reload, refresh } = useAsync(
     () => api.dashboard(),
     [],
@@ -59,22 +61,26 @@ export default function HomeScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <Card>
-            <View style={styles.rowBetween}>
-              <ThemedText type="default" style={styles.name}>
-                {item.name}
-              </ThemedText>
-              <ScorePill score={item.score} priority={item.priority} />
-            </View>
-            <Muted>
-              마지막 연락 {daysSince(item.lastContactAt)}
-              {item.interests.length ? ` · 관심 ${item.interests.join(', ')}` : ''}
-            </Muted>
-            <ThemedText type="small">{item.recommendation}</ThemedText>
-            {item.recommendedChannel ? (
-              <Muted>추천 방식: {item.recommendedChannel}</Muted>
-            ) : null}
-          </Card>
+          <Pressable
+            onPress={() => router.push(`/customer/${item.customerId}`)}
+            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}>
+            <Card>
+              <View style={styles.rowBetween}>
+                <ThemedText type="default" style={styles.name}>
+                  {item.name}
+                </ThemedText>
+                <ScorePill score={item.score} priority={item.priority} />
+              </View>
+              <Muted>
+                마지막 연락 {daysSince(item.lastContactAt)}
+                {item.interests.length ? ` · 관심 ${item.interests.join(', ')}` : ''}
+              </Muted>
+              <ThemedText type="small">{item.recommendation}</ThemedText>
+              {item.recommendedChannel ? (
+                <Muted>추천 방식: {item.recommendedChannel}</Muted>
+              ) : null}
+            </Card>
+          </Pressable>
         )}
         ListEmptyComponent={
           <View style={styles.empty}>
