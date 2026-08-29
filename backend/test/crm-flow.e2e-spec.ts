@@ -18,6 +18,7 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
   let tokenA = '';
   let tokenB = '';
   let customerId = '';
+  let consultationId = '';
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
@@ -147,6 +148,60 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
       .set(auth(tokenA))
       .expect(200);
     expect(res.body).toHaveLength(1);
+    consultationId = res.body[0].id;
+  });
+
+  it('상담 기록 수정 → 내용 반영', async () => {
+    await http
+      .patch(`/api/customers/${customerId}/consultations/${consultationId}`)
+      .set(auth(tokenA))
+      .send({ content: '수정된 상담 내용', nextAction: '다음 주 재확인' })
+      .expect(200);
+    const list = await http
+      .get(`/api/customers/${customerId}/consultations`)
+      .set(auth(tokenA))
+      .expect(200);
+    expect(list.body[0].content).toBe('수정된 상담 내용');
+    expect(list.body[0].nextAction).toBe('다음 주 재확인');
+  });
+
+  it('상담 기록 삭제', async () => {
+    await http
+      .delete(`/api/customers/${customerId}/consultations/${consultationId}`)
+      .set(auth(tokenA))
+      .expect(200);
+    const list = await http
+      .get(`/api/customers/${customerId}/consultations`)
+      .set(auth(tokenA))
+      .expect(200);
+    expect(list.body).toHaveLength(0);
+  });
+
+  // --- 일정 --------------------------------------------------------------
+  it('일정 생성 → 완료 처리 → 삭제', async () => {
+    const created = await http
+      .post('/api/schedules')
+      .set(auth(tokenA))
+      .send({
+        title: '이준호 고객 전화',
+        scheduleDate: new Date(Date.now() + 86_400_000).toISOString(),
+        type: 'PHONE_CONSULT',
+        customerId,
+      })
+      .expect(201);
+    const scheduleId = created.body.id;
+    expect(created.body.status).toBe('PENDING');
+
+    await http
+      .patch(`/api/schedules/${scheduleId}`)
+      .set(auth(tokenA))
+      .send({ status: 'DONE' })
+      .expect(200);
+
+    const list = await http.get('/api/schedules').set(auth(tokenA)).expect(200);
+    expect(list.body.find((s: { id: string }) => s.id === scheduleId)?.status).toBe('DONE');
+
+    await http.delete(`/api/schedules/${scheduleId}`).set(auth(tokenA)).expect(200);
   });
 
   it('AI 상담 요약 (저장 없음)', async () => {

@@ -83,6 +83,7 @@ OAuth 는 앱에서 네이티브 로그인 → 공급자 ID 토큰을 서버로 
 | --- | --- | --- |
 | POST | `/customers/:customerId/consultations` | 상담 기록 저장. `autoSummarize:true` 시 AI 요약 자동 생성, 고객 `lastContactAt`/`nextContactAt` 갱신 |
 | GET | `/customers/:customerId/consultations` | 상담이력 (최신순) |
+| PATCH | `/customers/:customerId/consultations/:id` | 수정 (`autoSummarize` 시 재요약) |
 | DELETE | `/customers/:customerId/consultations/:id` | 삭제 |
 
 ### 일정 — `SchedulesModule` (PRD 14·19)
@@ -119,7 +120,7 @@ OAuth 는 앱에서 네이티브 로그인 → 공급자 ID 토큰을 서버로 
 | 명령 | 대상 |
 | --- | --- |
 | `npm test` | 유닛 테스트 — `src/**/*.spec.ts` (예: `ai/scoring.spec.ts` 규칙 기반 점수 로직) |
-| `npm run test:e2e` | e2e — `test/crm-flow.e2e-spec.ts`: 회원가입/로그인/토큰 → 고객 CRUD → 상담 기록(autoSummarize) → AI 분석·다음행동·문자·대시보드 → 테넌트 격리(404) |
+| `npm run test:e2e` | e2e — `test/crm-flow.e2e-spec.ts`: 회원가입/로그인/토큰 → 고객 CRUD → 상담 기록 CRUD(autoSummarize) → 일정 생성·완료·삭제 → AI 분석·다음행동·문자·대시보드 → OAuth 미구성 401 → 디바이스 등록/다이제스트 → 테넌트 격리(404) |
 
 - e2e 는 실제 DB(`.env` 의 `DATABASE_URL`, `.env.test` 있으면 우선)에 붙어 돌며,
   `flow-*@e2e.test` 사용자를 만들고 `afterAll` 에서 cascade 삭제한다.

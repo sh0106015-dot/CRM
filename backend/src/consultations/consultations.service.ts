@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { AiService } from '../ai/ai.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateConsultationDto } from './dto/create-consultation.dto';
+import { UpdateConsultationDto } from './dto/update-consultation.dto';
 
 @Injectable()
 export class ConsultationsService {
@@ -63,15 +64,59 @@ export class ConsultationsService {
     });
   }
 
+  async update(
+    userId: string,
+    customerId: string,
+    id: string,
+    dto: UpdateConsultationDto,
+  ) {
+    await this.ensureConsultation(userId, customerId, id);
+
+    let { summary, nextAction } = dto;
+    let nextContactDate = dto.nextContactDate
+      ? new Date(dto.nextContactDate)
+      : undefined;
+
+    if (dto.autoSummarize && dto.content) {
+      const result = await this.ai.summarizeConsultation(dto.content);
+      summary = summary ?? result.summary;
+      nextAction = nextAction ?? result.nextAction;
+      nextContactDate =
+        nextContactDate ??
+        (result.nextContactDate ? new Date(result.nextContactDate) : undefined);
+    }
+
+    return this.prisma.consultation.update({
+      where: { id },
+      data: {
+        content: dto.content,
+        consultationDate: dto.consultationDate
+          ? new Date(dto.consultationDate)
+          : undefined,
+        summary,
+        nextAction,
+        nextContactDate,
+      },
+    });
+  }
+
   async remove(userId: string, customerId: string, id: string) {
+    await this.ensureConsultation(userId, customerId, id);
+    await this.prisma.consultation.delete({ where: { id } });
+    return { deleted: true };
+  }
+
+  private async ensureConsultation(
+    userId: string,
+    customerId: string,
+    id: string,
+  ) {
     await this.ensureCustomer(userId, customerId);
     const found = await this.prisma.consultation.findFirst({
       where: { id, customerId },
       select: { id: true },
     });
     if (!found) throw new NotFoundException('상담 기록을 찾을 수 없습니다.');
-    await this.prisma.consultation.delete({ where: { id } });
-    return { deleted: true };
   }
 
   private async ensureCustomer(userId: string, customerId: string) {

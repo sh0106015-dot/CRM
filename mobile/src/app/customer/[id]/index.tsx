@@ -1,6 +1,6 @@
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { MessageModal } from '@/components/message-modal';
 import { ThemedText } from '@/components/themed-text';
@@ -89,7 +89,12 @@ export default function CustomerDetailScreen() {
             onPress={() => router.push(`/customer/${id}/edit`)}
           />
           <Button
-            label="상담 기록 +"
+            label="일정 +"
+            variant="secondary"
+            onPress={() => router.push(`/schedule/new?customerId=${id}`)}
+          />
+          <Button
+            label="상담 +"
             onPress={() => router.push(`/customer/${id}/consultation`)}
           />
         </View>
@@ -176,11 +181,14 @@ export default function CustomerDetailScreen() {
           <ThemedText type="smallBold">상담이력 ({data.consultations.length})</ThemedText>
           {data.consultations.length ? (
             data.consultations.map((c) => (
-              <View key={c.id} style={styles.consult}>
-                <Muted>{c.consultationDate.slice(0, 10)}</Muted>
+              <Pressable
+                key={c.id}
+                onPress={() => router.push(`/customer/${id}/consultation?editId=${c.id}`)}
+                style={({ pressed }) => [styles.consult, pressed ? { opacity: 0.6 } : null]}>
+                <Muted>{c.consultationDate.slice(0, 10)} · 탭하여 수정</Muted>
                 <ThemedText type="small">{c.summary ?? c.content}</ThemedText>
                 {c.nextAction ? <Muted>다음 행동: {c.nextAction}</Muted> : null}
-              </View>
+              </Pressable>
             ))
           ) : (
             <Muted>상담 기록이 없습니다.</Muted>

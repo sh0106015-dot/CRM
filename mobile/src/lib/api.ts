@@ -248,6 +248,26 @@ export const api = {
       body,
     }),
 
+  updateConsultation: (
+    customerId: string,
+    id: string,
+    body: {
+      content?: string;
+      consultationDate?: string;
+      nextAction?: string;
+      autoSummarize?: boolean;
+    },
+  ) =>
+    request<Consultation>(`/customers/${customerId}/consultations/${id}`, {
+      method: 'PATCH',
+      body,
+    }),
+
+  deleteConsultation: (customerId: string, id: string) =>
+    request<{ deleted: boolean }>(`/customers/${customerId}/consultations/${id}`, {
+      method: 'DELETE',
+    }),
+
   summarize: (content: string) =>
     request<ConsultationSummary>('/ai/summarize', { method: 'POST', body: { content } }),
 
@@ -267,7 +287,33 @@ export const api = {
 
   schedules: (query?: { from?: string; to?: string }) =>
     request<Schedule[]>('/schedules', { query }),
+
+  createSchedule: (body: {
+    title: string;
+    scheduleDate: string;
+    type?: string;
+    customerId?: string;
+    memo?: string;
+  }) => request<Schedule>('/schedules', { method: 'POST', body }),
+
+  updateSchedule: (
+    id: string,
+    body: { title?: string; scheduleDate?: string; type?: string; status?: string; memo?: string },
+  ) => request<Schedule>(`/schedules/${id}`, { method: 'PATCH', body }),
+
+  deleteSchedule: (id: string) =>
+    request<{ deleted: boolean }>(`/schedules/${id}`, { method: 'DELETE' }),
 };
+
+export const SCHEDULE_TYPES = [
+  { key: 'CONTACT', label: '고객 연락' },
+  { key: 'PHONE_CONSULT', label: '전화상담' },
+  { key: 'VISIT_CONSULT', label: '대면상담' },
+  { key: 'CONTRACT', label: '계약' },
+  { key: 'RENEWAL', label: '갱신' },
+  { key: 'ANNIVERSARY', label: '기념일' },
+  { key: 'ETC', label: '기타' },
+] as const;
 
 export const PRIORITY_LABEL: Record<Priority, string> = {
   IMMEDIATE: '🔴 즉시',
