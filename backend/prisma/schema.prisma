@@ -1,0 +1,209 @@
+// AI 스마트 고객관리 플랫폼 - 데이터베이스 스키마
+// PRD 23장 데이터베이스 설계 기반
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+/// 고객 등급
+enum CustomerGrade {
+  NEW // 신규
+  GENERAL // 일반
+  LONGTERM // 장기고객
+  VIP // VIP
+  POTENTIAL // 잠재고객
+}
+
+/// 상담 진행 상태 (고객 단위)
+enum ConsultStatus {
+  NONE // 없음
+  IN_PROGRESS // 상담중
+  SCHEDULED // 상담예정
+  DONE // 완료
+}
+
+/// 일정 유형 (PRD 14장)
+enum ScheduleType {
+  CONTACT // 고객 연락
+  PHONE_CONSULT // 전화상담
+  VISIT_CONSULT // 대면상담
+  CONTRACT // 계약 관련
+  RENEWAL // 갱신
+  ANNIVERSARY // 기념일
+  ETC // 기타
+}
+
+enum ScheduleStatus {
+  PENDING
+  DONE
+  CANCELED
+}
+
+/// AI 관리 우선순위 (PRD 6-1: 🔴🟠🟡🟢)
+enum RecommendationPriority {
+  IMMEDIATE // 🔴 즉시 관리 필요
+  TODAY // 🟠 오늘 연락 권장
+  THIS_WEEK // 🟡 이번 주 관리
+  NORMAL // 🟢 정상 관리
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  passwordHash String?
+  occupation   String? // 직업 (예: 보험설계사)
+  provider     String   @default("local") // local | google | apple
+  providerId   String? // OAuth 공급자 사용자 ID
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customers Customer[]
+
+  @@index([provider, providerId])
+  @@map("users")
+}
+
+model Customer {
+  id         String  @id @default(cuid())
+  userId     String
+  name       String
+  phone      String
+  customerNo String? // 고객번호
+  birthDate  DateTime?
+  gender     Gender?
+  occupation String?
+  address    String?
+  notes      String? // 메모
+
+  grade         CustomerGrade @default(GENERAL)
+  interests     String[] // 관심분야 (건강보험, 자동차보험 ...)
+  consultStatus ConsultStatus @default(NONE)
+
+  lastContactAt DateTime? // 마지막 연락일
+  nextContactAt DateTime? // 다음 연락 예정일
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags           CustomerTag[]
+  consultations  Consultation[]
+  schedules      Schedule[]
+  recommendation AiRecommendation? // 최신 AI 추천 (고객당 1건 유지)
+  messages       AiGeneratedMessage[]
+
+  @@index([userId])
+  @@index([userId, name])
+  @@index([userId, phone])
+  @@index([userId, lastContactAt])
+  @@index([userId, nextContactAt])
+  @@map("customers")
+}
+
+model CustomerTag {
+  id         String   @id @default(cuid())
+  customerId String
+  tag        String
+  createdAt  DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, tag])
+  @@index([tag])
+  @@map("customer_tags")
+}
+
+model Consultation {
+  id              String   @id @default(cuid())
+  customerId      String
+  consultationDate DateTime @default(now())
+  content         String // 원본 상담 내용
+  summary         String? // AI 요약
+  nextAction      String? // 다음 행동
+  nextContactDate DateTime? // 다음 관리일
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, consultationDate])
+  @@map("consultations")
+}
+
+model Schedule {
+  id           String         @id @default(cuid())
+  customerId   String?
+  userId       String? // 고객과 무관한 개인 일정 지원
+  title        String
+  scheduleDate DateTime
+  type         ScheduleType   @default(CONTACT)
+  status       ScheduleStatus @default(PENDING)
+  memo         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([userId, scheduleDate])
+  @@index([customerId, scheduleDate])
+  @@index([status])
+  @@map("schedules")
+}
+
+model AiRecommendation {
+  id             String                 @id @default(cuid())
+  customerId     String                 @unique
+  score          Int // 고객관리 점수 0~100
+  priority       RecommendationPriority
+  reason         String // AI 판단 근거
+  recommendation String // 추천 행동
+  recommendedChannel String? // 추천 연락 방식 (문자 → 전화 ...)
+  recommendedAt  DateTime? // 추천 연락 시점
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([priority])
+  @@index([score])
+  @@map("ai_recommendations")
+}
+
+model AiGeneratedMessage {
+  id         String   @id @default(cuid())
+  customerId String
+  purpose    String // 안부 연락, 상담 유도 ...
+  tone       String // 친근하게, 정중하게 ...
+  content    String
+  createdAt  DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, createdAt])
+  @@map("ai_generated_messages")
+}
