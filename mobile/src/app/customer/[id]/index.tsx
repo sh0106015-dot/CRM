@@ -1,5 +1,5 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useRef, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
 import { MessageModal } from '@/components/message-modal';
@@ -33,12 +33,22 @@ function InfoRow({ label, value }: { label: string; value?: string | null }) {
 
 export default function CustomerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const { data, error, loading, reload } = useAsync(() => api.customer(id), [id]);
 
   const [analyzing, setAnalyzing] = useState(false);
   const [actions, setActions] = useState<string[] | null>(null);
   const [loadingActions, setLoadingActions] = useState(false);
   const [msgOpen, setMsgOpen] = useState(false);
+
+  // 수정/상담 기록 화면에서 돌아오면 새로고침 (최초 진입 시 중복 로드 방지)
+  const mounted = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (mounted.current) reload();
+      else mounted.current = true;
+    }, [reload]),
+  );
 
   const analyze = async () => {
     setAnalyzing(true);
@@ -72,6 +82,18 @@ export default function CustomerDetailScreen() {
     <ThemedView style={styles.flex}>
       <Stack.Screen options={{ title: data.name }} />
       <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.actionBar}>
+          <Button
+            label="수정"
+            variant="secondary"
+            onPress={() => router.push(`/customer/${id}/edit`)}
+          />
+          <Button
+            label="상담 기록 +"
+            onPress={() => router.push(`/customer/${id}/consultation`)}
+          />
+        </View>
+
         {/* 기본정보 */}
         <Card>
           <ThemedText type="smallBold">기본정보</ThemedText>
@@ -196,6 +218,7 @@ export default function CustomerDetailScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: Spacing.four, gap: Spacing.three },
+  actionBar: { flexDirection: 'row', gap: Spacing.two },
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.three },
   rowValue: { flexShrink: 1, textAlign: 'right' },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

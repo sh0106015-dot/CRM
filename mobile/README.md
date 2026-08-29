@@ -42,8 +42,12 @@ src/
 │   ├── _layout.tsx         루트 Stack + 인증 게이트 (미로그인 → /login)
 │   ├── login.tsx           로그인 / 회원가입
 │   ├── customer/
-│   │   ├── [id].tsx        고객 상세 — 기본정보·상태·AI분석·다음행동·상담이력 + 문자 모달
-│   │   └── new.tsx         고객 등록 (모달) — /customers POST
+│   │   ├── [id]/
+│   │   │   ├── index.tsx        고객 상세 — 정보·상태·AI분석·다음행동·상담이력 + 문자 모달
+│   │   │   ├── edit.tsx         고객 수정 (모달) — PATCH /customers/:id
+│   │   │   └── consultation.tsx 상담 기록 작성 (모달) — POST /customers/:id/consultations
+│   │   │                        (autoSummarize 토글 + AI 요약 미리보기 /ai/summarize)
+│   │   └── new.tsx             고객 등록 (모달) — POST /customers
 │   └── (tabs)/
 │       ├── _layout.tsx     NativeTabs 5탭
 │       ├── index.tsx       홈 — /ai/dashboard (카드 탭 → 상세)
@@ -58,12 +62,13 @@ src/
 │   └── use-async.ts        로드 + pull-to-refresh 훅
 └── components/
     ├── ui-kit.tsx          Card / Button / Chip / LabeledInput / ScorePill ...
+    ├── customer-form.tsx   등록/수정 공용 폼
     └── message-modal.tsx   AI 문자 생성 모달 (목적·말투·상황 → /ai/.../message,
                             복사 + sms: 딥링크)
 ```
 
 ## 상태
 
-스캐폴딩 — 5탭 + 인증 + 7개 화면(탭 5 + 고객 상세/등록)이 백엔드 실데이터와 연동됨.
-AI 문자 생성 모달 포함. `tsc --noEmit` 통과, Android 번들 성공.
-고객 수정 화면, 상담 기록 작성 UI, 푸시 알림(FCM)은 미구현.
+스캐폴딩 — 5탭 + 인증 + 9개 화면(탭 5 + 고객 상세/등록/수정/상담기록)이 백엔드 실데이터와 연동됨.
+AI 문자 생성 모달 · 상담 AI 자동 요약 포함. `tsc --noEmit` 통과, Android 번들 성공.
+푸시 알림(FCM), 상담이력 편집/삭제 UI는 미구현.

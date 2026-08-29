@@ -109,6 +109,13 @@ export interface GeneratedMessage {
   createdAt: string;
 }
 
+export interface ConsultationSummary {
+  summary: string;
+  keyPoints: string[];
+  nextAction?: string | null;
+  nextContactDate?: string | null;
+}
+
 export interface CustomerDetail extends Customer {
   consultations: Consultation[];
   schedules: Schedule[];
@@ -205,6 +212,21 @@ export const api = {
 
   nextActions: (customerId: string) =>
     request<string[]>(`/ai/customers/${customerId}/next-actions`),
+
+  consultations: (customerId: string) =>
+    request<Consultation[]>(`/customers/${customerId}/consultations`),
+
+  createConsultation: (
+    customerId: string,
+    body: { content: string; consultationDate?: string; autoSummarize?: boolean },
+  ) =>
+    request<Consultation>(`/customers/${customerId}/consultations`, {
+      method: 'POST',
+      body,
+    }),
+
+  summarize: (content: string) =>
+    request<ConsultationSummary>('/ai/summarize', { method: 'POST', body: { content } }),
 
   analyze: (customerId: string) =>
     request<Recommendation>(`/ai/customers/${customerId}/analyze`, { method: 'POST' }),

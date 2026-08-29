@@ -35,7 +35,15 @@ function RootNavigator() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="login" />
-      <Stack.Screen name="customer/[id]" options={{ headerShown: true, title: '고객 상세' }} />
+      <Stack.Screen name="customer/[id]/index" options={{ headerShown: true, title: '고객 상세' }} />
+      <Stack.Screen
+        name="customer/[id]/edit"
+        options={{ headerShown: true, title: '고객 수정', presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="customer/[id]/consultation"
+        options={{ headerShown: true, title: '상담 기록', presentation: 'modal' }}
+      />
       <Stack.Screen
         name="customer/new"
         options={{ headerShown: true, title: '고객 등록', presentation: 'modal' }}
