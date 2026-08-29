@@ -4,6 +4,7 @@ import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-nat
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import {
+  Button,
   Card,
   ErrorView,
   Loading,
@@ -44,6 +45,9 @@ export default function HomeScreen() {
             <ScreenHeader
               title={`안녕하세요, ${user?.name ?? ''}님`}
               subtitle={`오늘 관리가 필요한 고객 ${data.needsCareToday.length}명`}
+              right={
+                <Button label="주간 리포트" variant="secondary" onPress={() => router.push('/report')} />
+              }
             />
             <View style={styles.counts}>
               {ORDER.map((p) => (

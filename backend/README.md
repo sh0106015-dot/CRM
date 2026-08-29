@@ -120,7 +120,7 @@ OAuth 는 앱에서 네이티브 로그인 → 공급자 ID 토큰을 서버로 
 | 명령 | 대상 |
 | --- | --- |
 | `npm test` | 유닛 테스트 — `src/**/*.spec.ts` (예: `ai/scoring.spec.ts` 규칙 기반 점수 로직) |
-| `npm run test:e2e` | e2e — `test/crm-flow.e2e-spec.ts`: 회원가입/로그인/토큰 → 고객 CRUD → 상담 기록 CRUD(autoSummarize) → 일정 생성·완료·삭제 → AI 분석·다음행동·문자·대시보드 → OAuth 미구성 401 → 디바이스 등록/다이제스트 → 테넌트 격리(404) |
+| `npm run test:e2e` | e2e — `test/crm-flow.e2e-spec.ts`: 회원가입/로그인/토큰 → 고객 CRUD → 상담 기록 CRUD(autoSummarize) → 일정 생성·완료·삭제 → AI 분석·다음행동·문자·대시보드·주간리포트 → OAuth 미구성 401 → 디바이스 등록/다이제스트 → 테넌트 격리(404) |
 
 - e2e 는 실제 DB(`.env` 의 `DATABASE_URL`, `.env.test` 있으면 우선)에 붙어 돌며,
   `flow-*@e2e.test` 사용자를 만들고 `afterAll` 에서 cascade 삭제한다.
@@ -139,6 +139,7 @@ OAuth 는 앱에서 네이티브 로그인 → 공급자 ID 토큰을 서버로 
 
 ## 상태
 
-MVP 백엔드 구현 — 모듈/DI/라우팅/Prisma 스키마 + 첫 마이그레이션 + 시드 완료.
-유닛·e2e 테스트 통과 (`npm test`, `npm run test:e2e`).
-OAuth(Google/Apple)·FCM 푸시는 미구현.
+MVP 백엔드 구현 완료 — 인증(이메일 + Google/Apple OAuth) · 고객/상담/일정 CRUD ·
+AI 분석·추천·문자·요약·대시보드·주간리포트 · 푸시 알림(Expo Push) + 일일 다이제스트 크론.
+Prisma 마이그레이션 2건 + 시드 + 유닛/e2e 테스트 + CI 통과.
+미구현: 원시 firebase-admin FCM 경로(현재 Expo Push), 조직/관리자(B2B) 기능.

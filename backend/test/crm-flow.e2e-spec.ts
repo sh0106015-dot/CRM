@@ -261,6 +261,20 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
     expect(Array.isArray(dash.body.needsCareToday)).toBe(true);
   });
 
+  it('AI 주간 리포트 → 통계 + 분석 텍스트', async () => {
+    const res = await http.get('/api/ai/report/weekly').set(auth(tokenA)).expect(200);
+    expect(res.body.stats).toEqual(
+      expect.objectContaining({
+        total: expect.any(Number),
+        newCustomers: expect.any(Number),
+        consulted: expect.any(Number),
+        longUnmanaged: expect.any(Number),
+      }),
+    );
+    expect(res.body.analysis).toEqual(expect.any(String));
+    expect(res.body.stats.total).toBeGreaterThanOrEqual(1);
+  });
+
   // --- OAuth ----------------------------------------------------------
   it('OAuth — 미구성 서버는 401, 형식 오류는 400', async () => {
     // idToken 누락 → 400 (validation)

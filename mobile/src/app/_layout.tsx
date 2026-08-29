@@ -52,6 +52,10 @@ function RootNavigator() {
         name="schedule/new"
         options={{ headerShown: true, title: '일정 추가', presentation: 'modal' }}
       />
+      <Stack.Screen
+        name="report"
+        options={{ headerShown: true, title: '주간 리포트', presentation: 'modal' }}
+      />
     </Stack>
   );
 }
