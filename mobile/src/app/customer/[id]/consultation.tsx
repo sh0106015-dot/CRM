@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 
+import { useDialog } from '@/components/dialog';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Button, Card, LabeledInput, Loading, Muted } from '@/components/ui-kit';
@@ -23,6 +24,7 @@ function today(): string {
 export default function ConsultationScreen() {
   const { id, editId } = useLocalSearchParams<{ id: string; editId?: string }>();
   const router = useRouter();
+  const { confirm } = useDialog();
   const isEdit = Boolean(editId);
 
   const [content, setContent] = useState('');
@@ -122,23 +124,21 @@ export default function ConsultationScreen() {
     }
   };
 
-  const remove = () => {
+  const remove = async () => {
     if (!editId) return;
-    Alert.alert('상담 기록 삭제', '이 상담 기록을 삭제할까요?', [
-      { text: '취소', style: 'cancel' },
-      {
-        text: '삭제',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await api.deleteConsultation(id, editId);
-            router.back();
-          } catch (e) {
-            Alert.alert('오류', e instanceof Error ? e.message : '삭제 실패');
-          }
-        },
-      },
-    ]);
+    const ok = await confirm({
+      title: '상담 기록 삭제',
+      message: '이 상담 기록을 삭제할까요?',
+      confirmLabel: '삭제',
+      destructive: true,
+    });
+    if (!ok) return;
+    try {
+      await api.deleteConsultation(id, editId);
+      router.back();
+    } catch (e) {
+      Alert.alert('오류', e instanceof Error ? e.message : '삭제 실패');
+    }
   };
 
   if (loading) return <Loading />;

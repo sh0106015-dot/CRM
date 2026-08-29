@@ -76,9 +76,14 @@ src/
 └── components/
     ├── ui-kit.tsx          Card / Button / Chip / LabeledInput / ScorePill ...
     ├── customer-form.tsx   등록/수정 공용 폼
+    ├── dialog.tsx          DialogProvider / useDialog — confirm·actionSheet
+    │                       (RN Web 의 Alert 3버튼 미지원 → Modal 기반 크로스플랫폼)
     └── message-modal.tsx   AI 문자 생성 모달 (목적·말투·상황 → /ai/.../message,
                             복사 + sms: 딥링크)
 ```
+
+> 웹에서도 동작: 토큰 저장은 `localStorage`(네이티브는 SecureStore), 다중 선택
+> 다이얼로그는 `useDialog()`. `npx expo start --web` 로 브라우저에서 확인 가능.
 
 ## 상태
 
