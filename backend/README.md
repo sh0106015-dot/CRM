@@ -94,6 +94,17 @@ docker run --name crm-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=crm 
 - PRD 31장(개인정보): 프롬프트에는 최소 데이터만 담는다 — 연락처·주소·생년월일은
   모델로 전송하지 않는다 (`AiService.profileForPrompt`).
 
+## 테스트
+
+| 명령 | 대상 |
+| --- | --- |
+| `npm test` | 유닛 테스트 — `src/**/*.spec.ts` (예: `ai/scoring.spec.ts` 규칙 기반 점수 로직) |
+| `npm run test:e2e` | e2e — `test/crm-flow.e2e-spec.ts`: 회원가입/로그인/토큰 → 고객 CRUD → 상담 기록(autoSummarize) → AI 분석·다음행동·문자·대시보드 → 테넌트 격리(404) |
+
+- e2e 는 실제 DB(`.env` 의 `DATABASE_URL`, `.env.test` 있으면 우선)에 붙어 돌며,
+  `flow-*@e2e.test` 사용자를 만들고 `afterAll` 에서 cascade 삭제한다.
+- `ANTHROPIC_API_KEY` 미설정 시 규칙 기반 폴백 경로를 검증한다 (네트워크·비용 없음).
+
 ## 스크립트
 
 | 명령 | 설명 |
@@ -102,10 +113,11 @@ docker run --name crm-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=crm 
 | `npm run build` | 프로덕션 빌드 |
 | `npm run start:prod` | `dist/main` 실행 |
 | `npm run prisma:migrate` | 마이그레이션 (dev) |
-| `npm run prisma:deploy` | 마이그레이션 (prod) |
+| `npm run prisma:seed` | 시드 데이터 |
 | `npm run prisma:studio` | Prisma Studio |
 
 ## 상태
 
-스캐폴딩 단계 — 모듈 구조 / DI / 라우팅 / Prisma 스키마까지 완료 (`npm run build` 통과, 앱 부팅 확인).
-DB 마이그레이션·테스트·OAuth(Google/Apple)·FCM 푸시는 미구현.
+MVP 백엔드 구현 — 모듈/DI/라우팅/Prisma 스키마 + 첫 마이그레이션 + 시드 완료.
+유닛·e2e 테스트 통과 (`npm test`, `npm run test:e2e`).
+OAuth(Google/Apple)·FCM 푸시는 미구현.
