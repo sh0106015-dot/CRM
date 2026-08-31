@@ -167,6 +167,11 @@ export interface Schedule {
   customer?: { id: string; name: string; phone: string } | null;
 }
 
+export interface TagSummary {
+  tag: string;
+  count: number;
+}
+
 export type AiRecommendationFrequency = 'DAILY' | 'WEEKLY' | 'OFF';
 
 export interface UserPreferences {
@@ -233,6 +238,17 @@ export const api = {
     request<UserPreferences>('/me/preferences', { method: 'PATCH', body: patch }),
 
   deleteAccount: () => request<{ deleted: boolean }>('/me', { method: 'DELETE' }),
+
+  tags: () => request<TagSummary[]>('/tags'),
+
+  renameTag: (tag: string, newTag: string) =>
+    request<{ renamed: number; merged?: number }>(`/tags/${encodeURIComponent(tag)}`, {
+      method: 'PATCH',
+      body: { newTag },
+    }),
+
+  deleteTag: (tag: string) =>
+    request<{ deleted: number }>(`/tags/${encodeURIComponent(tag)}`, { method: 'DELETE' }),
 
   dashboard: () => request<Dashboard>('/ai/dashboard'),
 

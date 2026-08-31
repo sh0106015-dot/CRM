@@ -120,6 +120,56 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
     expect(res.body.notes).toBe('메모 추가');
   });
 
+  // --- 태그 일괄 관리 (PRD 16) ----------------------------------------
+  it('태그 목록 → 사용 중 태그 + 고객 수', async () => {
+    const res = await http.get('/api/tags').set(auth(tokenA)).expect(200);
+    const map = Object.fromEntries(
+      res.body.map((t: { tag: string; count: number }) => [t.tag, t.count]),
+    );
+    expect(map['VIP']).toBeGreaterThanOrEqual(1);
+    expect(map['관리필요']).toBeGreaterThanOrEqual(1);
+  });
+
+  it('태그 이름 일괄 변경 → 모든 고객에 반영', async () => {
+    const r = await http
+      .patch('/api/tags/VIP')
+      .set(auth(tokenA))
+      .send({ newTag: '우수고객' })
+      .expect(200);
+    expect(r.body.renamed).toBeGreaterThanOrEqual(1);
+
+    const detail = await http.get(`/api/customers/${customerId}`).set(auth(tokenA)).expect(200);
+    const tags = detail.body.tags.map((t: { tag: string }) => t.tag);
+    expect(tags).toContain('우수고객');
+    expect(tags).not.toContain('VIP');
+  });
+
+  it('선택 고객에 태그 부여/제거', async () => {
+    const add = await http
+      .post('/api/tags/신규/apply')
+      .set(auth(tokenA))
+      .send({ customerIds: [customerId] })
+      .expect(201);
+    expect(add.body.added).toBe(1);
+
+    let detail = await http.get(`/api/customers/${customerId}`).set(auth(tokenA)).expect(200);
+    expect(detail.body.tags.map((t: { tag: string }) => t.tag)).toContain('신규');
+
+    await http
+      .post('/api/tags/신규/remove')
+      .set(auth(tokenA))
+      .send({ customerIds: [customerId] })
+      .expect(201);
+    detail = await http.get(`/api/customers/${customerId}`).set(auth(tokenA)).expect(200);
+    expect(detail.body.tags.map((t: { tag: string }) => t.tag)).not.toContain('신규');
+  });
+
+  it('태그 일괄 삭제', async () => {
+    await http.delete('/api/tags/관리필요').set(auth(tokenA)).expect(200);
+    const res = await http.get('/api/tags').set(auth(tokenA)).expect(200);
+    expect(res.body.map((t: { tag: string }) => t.tag)).not.toContain('관리필요');
+  });
+
   // --- 상담 기록 --------------------------------------------------------
   it('상담 기록 저장 (autoSummarize) → 요약 생성 + 마지막 연락일 갱신', async () => {
     const before = await http.get(`/api/customers/${customerId}`).set(auth(tokenA)).expect(200);

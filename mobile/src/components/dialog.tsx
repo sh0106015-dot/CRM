@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -34,11 +34,21 @@ interface SheetOpts {
   cancelLabel?: string;
 }
 
+interface PromptOpts {
+  title: string;
+  message?: string;
+  initialValue?: string;
+  placeholder?: string;
+  confirmLabel?: string;
+}
+
 interface DialogApi {
   /** 예/아니오 확인. resolve(true) = 확인 */
   confirm: (opts: ConfirmOpts) => Promise<boolean>;
   /** 여러 선택지 액션시트. resolve(value) 또는 취소 시 null */
   actionSheet: (opts: SheetOpts) => Promise<string | null>;
+  /** 텍스트 입력. resolve(trimmed value) 또는 취소/빈값 시 null */
+  prompt: (opts: PromptOpts) => Promise<string | null>;
 }
 
 const DialogContext = createContext<DialogApi | undefined>(undefined);
@@ -46,6 +56,7 @@ const DialogContext = createContext<DialogApi | undefined>(undefined);
 type State =
   | { kind: 'confirm'; opts: ConfirmOpts }
   | { kind: 'sheet'; opts: SheetOpts }
+  | { kind: 'prompt'; opts: PromptOpts }
   | null;
 
 /**
@@ -55,6 +66,7 @@ type State =
 export function DialogProvider({ children }: { children: ReactNode }) {
   const theme = useTheme();
   const [state, setState] = useState<State>(null);
+  const [text, setText] = useState('');
   const resolver = useRef<((v: unknown) => void) | null>(null);
 
   const close = useCallback((value: unknown) => {
@@ -81,7 +93,25 @@ export function DialogProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const api = useMemo<DialogApi>(() => ({ confirm, actionSheet }), [confirm, actionSheet]);
+  const prompt = useCallback(
+    (opts: PromptOpts) =>
+      new Promise<string | null>((resolve) => {
+        resolver.current = resolve as (v: unknown) => void;
+        setText(opts.initialValue ?? '');
+        setState({ kind: 'prompt', opts });
+      }),
+    [],
+  );
+
+  const submitPrompt = useCallback(() => {
+    const v = text.trim();
+    close(v.length ? v : null);
+  }, [text, close]);
+
+  const api = useMemo<DialogApi>(
+    () => ({ confirm, actionSheet, prompt }),
+    [confirm, actionSheet, prompt],
+  );
 
   return (
     <DialogContext.Provider value={api}>
@@ -154,6 +184,46 @@ export function DialogProvider({ children }: { children: ReactNode }) {
               </View>
             ) : null}
 
+            {state?.kind === 'prompt' ? (
+              <>
+                <TextInput
+                  value={text}
+                  onChangeText={setText}
+                  placeholder={state.opts.placeholder}
+                  placeholderTextColor={theme.textSecondary}
+                  autoFocus
+                  onSubmitEditing={submitPrompt}
+                  returnKeyType="done"
+                  style={[
+                    styles.input,
+                    { color: theme.text, backgroundColor: theme.backgroundElement },
+                  ]}
+                />
+                <View style={styles.confirmRow}>
+                  <Pressable
+                    onPress={() => close(null)}
+                    style={({ pressed }) => [
+                      styles.confirmBtn,
+                      { backgroundColor: theme.backgroundElement },
+                      pressed ? { opacity: 0.7 } : null,
+                    ]}>
+                    <ThemedText type="smallBold">취소</ThemedText>
+                  </Pressable>
+                  <Pressable
+                    onPress={submitPrompt}
+                    style={({ pressed }) => [
+                      styles.confirmBtn,
+                      { backgroundColor: '#208AEF' },
+                      pressed ? { opacity: 0.85 } : null,
+                    ]}>
+                    <ThemedText type="smallBold" style={{ color: '#ffffff' }}>
+                      {state.opts.confirmLabel ?? '확인'}
+                    </ThemedText>
+                  </Pressable>
+                </View>
+              </>
+            ) : null}
+
             {state?.kind === 'sheet' ? (
               <Pressable
                 onPress={() => close(null)}
@@ -210,5 +280,11 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.three,
     borderRadius: Spacing.two,
     alignItems: 'center',
+  },
+  input: {
+    borderRadius: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.three,
+    fontSize: 15,
   },
 });

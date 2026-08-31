@@ -57,6 +57,10 @@ function RootNavigator() {
         name="report"
         options={{ headerShown: true, title: '주간 리포트', presentation: 'modal' }}
       />
+      <Stack.Screen
+        name="tags"
+        options={{ headerShown: true, title: '태그 관리', presentation: 'modal' }}
+      />
     </Stack>
   );
 }

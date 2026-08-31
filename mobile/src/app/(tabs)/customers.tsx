@@ -42,7 +42,12 @@ export default function CustomersScreen() {
       <ScreenHeader
         title="고객"
         subtitle={data ? `${data.total}명` : undefined}
-        right={<Button label="+ 등록" onPress={() => router.push('/customer/new')} />}
+        right={
+          <View style={styles.headerBtns}>
+            <Button label="태그" variant="secondary" onPress={() => router.push('/tags')} />
+            <Button label="+ 등록" onPress={() => router.push('/customer/new')} />
+          </View>
+        }
       />
       <View style={styles.searchWrap}>
         <TextInput
@@ -114,6 +119,7 @@ export default function CustomersScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  headerBtns: { flexDirection: 'row', gap: Spacing.one },
   searchWrap: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.three },
   input: {
     borderRadius: Spacing.two,

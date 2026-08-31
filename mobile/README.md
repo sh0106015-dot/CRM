@@ -61,6 +61,7 @@ src/
 │   ├── schedule/
 │   │   └── new.tsx             일정 추가 (모달) — POST /schedules (?customerId= 연결)
 │   ├── report.tsx             주간 리포트 (모달) — GET /ai/report/weekly (홈 헤더에서 진입)
+│   ├── tags.tsx               태그 관리 (모달) — 목록/이름변경(prompt)/삭제 (고객 헤더에서 진입)
 │   └── (tabs)/
 │       ├── _layout.tsx     NativeTabs 5탭
 │       ├── index.tsx       홈 — /ai/dashboard (카드 탭 → 상세)
