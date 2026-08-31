@@ -167,6 +167,17 @@ export interface Schedule {
   customer?: { id: string; name: string; phone: string } | null;
 }
 
+export type AiRecommendationFrequency = 'DAILY' | 'WEEKLY' | 'OFF';
+
+export interface UserPreferences {
+  dailyDigestEnabled: boolean;
+  notifyConsultation: boolean;
+  notifyBirthday: boolean;
+  notifyAiRecommendation: boolean;
+  aiMessageTone: string;
+  aiRecommendationFrequency: AiRecommendationFrequency;
+}
+
 export interface WeeklyReport {
   periodStart: string;
   stats: {
@@ -215,6 +226,13 @@ export const api = {
       '/notifications/daily-digest/run',
       { method: 'POST' },
     ),
+
+  preferences: () => request<UserPreferences>('/me/preferences'),
+
+  updatePreferences: (patch: Partial<UserPreferences>) =>
+    request<UserPreferences>('/me/preferences', { method: 'PATCH', body: patch }),
+
+  deleteAccount: () => request<{ deleted: boolean }>('/me', { method: 'DELETE' }),
 
   dashboard: () => request<Dashboard>('/ai/dashboard'),
 

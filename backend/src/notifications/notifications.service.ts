@@ -52,9 +52,20 @@ export class NotificationsService {
 
   /** 스케줄러용 - 모든 사용자에 대해 다이제스트 발송 */
   async runDailyDigestForAll() {
-    const users = await this.prisma.user.findMany({ select: { id: true } });
+    const users = await this.prisma.user.findMany({
+      select: { id: true, preferences: true },
+    });
+    // preferences.dailyDigestEnabled === false 인 사용자는 제외
+    const targets = users.filter((u) => {
+      const p = u.preferences;
+      return (
+        !p ||
+        typeof p !== 'object' ||
+        (p as Record<string, unknown>).dailyDigestEnabled !== false
+      );
+    });
     let notified = 0;
-    for (const u of users) {
+    for (const u of targets) {
       try {
         const r = await this.dailyDigestForUser(u.id);
         if (r.push.sent > 0) notified += 1;
@@ -62,7 +73,9 @@ export class NotificationsService {
         this.logger.warn(`다이제스트 실패 (user ${u.id}): ${String(err)}`);
       }
     }
-    this.logger.log(`일일 다이제스트 완료 - ${notified}/${users.length} 사용자에게 발송`);
-    return { users: users.length, notified };
+    this.logger.log(
+      `일일 다이제스트 완료 - ${notified}/${targets.length} 발송 (전체 ${users.length}명, ${users.length - targets.length}명 수신거부)`,
+    );
+    return { users: users.length, targeted: targets.length, notified };
   }
 }

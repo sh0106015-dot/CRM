@@ -275,6 +275,42 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
     expect(res.body.stats.total).toBeGreaterThanOrEqual(1);
   });
 
+  // --- 내 정보 / 설정 (PRD 21) --------------------------------------
+  it('GET /me — 프로필 + 기본 설정값', async () => {
+    const res = await http.get('/api/me').set(auth(tokenA)).expect(200);
+    expect(res.body).toMatchObject({ email: userA.email, name: userA.name });
+    expect(res.body.preferences).toMatchObject({
+      dailyDigestEnabled: true,
+      aiMessageTone: '정중하게',
+      aiRecommendationFrequency: 'DAILY',
+    });
+  });
+
+  it('설정 변경 → 병합 저장', async () => {
+    const patched = await http
+      .patch('/api/me/preferences')
+      .set(auth(tokenA))
+      .send({ dailyDigestEnabled: false, aiMessageTone: '친근하게' })
+      .expect(200);
+    expect(patched.body).toMatchObject({
+      dailyDigestEnabled: false,
+      aiMessageTone: '친근하게',
+      notifyBirthday: true, // 건드리지 않은 값은 유지
+    });
+
+    const again = await http.get('/api/me/preferences').set(auth(tokenA)).expect(200);
+    expect(again.body.dailyDigestEnabled).toBe(false);
+    expect(again.body.aiMessageTone).toBe('친근하게');
+  });
+
+  it('잘못된 설정 값 → 400', async () => {
+    await http
+      .patch('/api/me/preferences')
+      .set(auth(tokenA))
+      .send({ aiRecommendationFrequency: 'HOURLY' })
+      .expect(400);
+  });
+
   // --- OAuth ----------------------------------------------------------
   it('OAuth — 미구성 서버는 401, 형식 오류는 400', async () => {
     // idToken 누락 → 400 (validation)
@@ -329,6 +365,12 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
       .post(`/api/ai/customers/${customerId}/analyze`)
       .set(auth(tokenB))
       .expect(404);
+  });
+
+  it('회원탈퇴 → 이후 내 정보 조회 불가', async () => {
+    await http.delete('/api/me').set(auth(tokenB)).expect(200);
+    await http.get('/api/me').set(auth(tokenB)).expect(404);
+    tokenB = ''; // afterAll 정리 대상에서 실질적으로 제외 (이미 삭제됨)
   });
 });
 

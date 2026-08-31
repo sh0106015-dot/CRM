@@ -55,6 +55,17 @@ docker run --name crm-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=crm 
 OAuth 는 앱에서 네이티브 로그인 → 공급자 ID 토큰을 서버로 전달 → 서버가 검증 후
 `provider`+`providerId`(없으면 이메일)로 계정을 연결/생성한다. 클라이언트 ID 미설정 시 401.
 
+### 사용자 — `UsersModule` (PRD 21)
+| Method | Path | 설명 |
+| --- | --- | --- |
+| GET | `/me` | 프로필 + 병합된 설정값 |
+| GET | `/me/preferences` | 설정 (기본값 위에 저장분 병합) |
+| PATCH | `/me/preferences` | 설정 부분 변경 (`dailyDigestEnabled`, `notify*`, `aiMessageTone`, `aiRecommendationFrequency`) |
+| DELETE | `/me` | 회원탈퇴 (관련 데이터 cascade 삭제) |
+
+- `dailyDigestEnabled: false` 사용자는 09:00 다이제스트 크론에서 제외된다.
+- 설정은 `users.preferences` JSON 컬럼에 저장 (마이그레이션 `20260830074711_user_preferences`).
+
 ### 알림 — `NotificationsModule` (PRD 19)
 | Method | Path | 설명 |
 | --- | --- | --- |
@@ -120,7 +131,7 @@ OAuth 는 앱에서 네이티브 로그인 → 공급자 ID 토큰을 서버로 
 | 명령 | 대상 |
 | --- | --- |
 | `npm test` | 유닛 테스트 — `src/**/*.spec.ts` (예: `ai/scoring.spec.ts` 규칙 기반 점수 로직) |
-| `npm run test:e2e` | e2e — `test/crm-flow.e2e-spec.ts`: 회원가입/로그인/토큰 → 고객 CRUD → 상담 기록 CRUD(autoSummarize) → 일정 생성·완료·삭제 → AI 분석·다음행동·문자·대시보드·주간리포트 → OAuth 미구성 401 → 디바이스 등록/다이제스트 → 테넌트 격리(404) |
+| `npm run test:e2e` | e2e — `test/crm-flow.e2e-spec.ts`: 회원가입/로그인/토큰 → 고객 CRUD → 상담 기록 CRUD(autoSummarize) → 일정 생성·완료·삭제 → AI 분석·다음행동·문자·대시보드·주간리포트 → 설정 조회/변경 → OAuth 미구성 401 → 디바이스 등록/다이제스트 → 테넌트 격리(404) → 회원탈퇴 |
 
 - e2e 는 실제 DB(`.env` 의 `DATABASE_URL`, `.env.test` 있으면 우선)에 붙어 돌며,
   `flow-*@e2e.test` 사용자를 만들고 `afterAll` 에서 cascade 삭제한다.

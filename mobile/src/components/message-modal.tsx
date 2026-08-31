@@ -1,5 +1,5 @@
 import * as Clipboard from 'expo-clipboard';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   Linking,
@@ -37,6 +37,17 @@ export function MessageModal({
   const [context, setContext] = useState('');
   const [result, setResult] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // 설정의 '문자 기본 말투' 를 초기값으로 사용
+  useEffect(() => {
+    if (!visible) return;
+    api
+      .preferences()
+      .then((p) => {
+        if (p.aiMessageTone && TONES.includes(p.aiMessageTone)) setTone(p.aiMessageTone);
+      })
+      .catch(() => {});
+  }, [visible]);
 
   const reset = () => {
     setResult(null);
