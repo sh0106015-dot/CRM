@@ -237,6 +237,12 @@ export const api = {
   updatePreferences: (patch: Partial<UserPreferences>) =>
     request<UserPreferences>('/me/preferences', { method: 'PATCH', body: patch }),
 
+  changePassword: (currentPassword: string, newPassword: string) =>
+    request<{ changed: boolean }>('/me/password', {
+      method: 'PATCH',
+      body: { currentPassword, newPassword },
+    }),
+
   deleteAccount: () => request<{ deleted: boolean }>('/me', { method: 'DELETE' }),
 
   tags: () => request<TagSummary[]>('/tags'),

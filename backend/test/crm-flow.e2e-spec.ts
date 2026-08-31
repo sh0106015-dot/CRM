@@ -361,6 +361,40 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
       .expect(400);
   });
 
+  it('비밀번호 변경 → 이전 비번 무효, 새 비번 로그인 성공', async () => {
+    const newPassword = 'e2e-pass-9999';
+
+    await http
+      .patch('/api/me/password')
+      .set(auth(tokenA))
+      .send({ currentPassword: 'totally-wrong', newPassword })
+      .expect(401);
+
+    await http
+      .patch('/api/me/password')
+      .set(auth(tokenA))
+      .send({ currentPassword: userA.password, newPassword: userA.password })
+      .expect(400);
+
+    await http
+      .patch('/api/me/password')
+      .set(auth(tokenA))
+      .send({ currentPassword: userA.password, newPassword })
+      .expect(200);
+
+    await http
+      .post('/api/auth/login')
+      .send({ email: userA.email, password: userA.password })
+      .expect(401);
+
+    const relogin = await http
+      .post('/api/auth/login')
+      .send({ email: userA.email, password: newPassword })
+      .expect(201);
+    tokenA = relogin.body.accessToken;
+    userA.password = newPassword;
+  });
+
   // --- OAuth ----------------------------------------------------------
   it('OAuth — 미구성 서버는 401, 형식 오류는 400', async () => {
     // idToken 누락 → 400 (validation)

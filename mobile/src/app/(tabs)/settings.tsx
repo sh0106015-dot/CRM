@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, Switch, View } from 'react-native';
 
@@ -53,6 +54,7 @@ function ToggleRow({
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
   const { confirm } = useDialog();
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   const { data: prefs, error, reload } = useAsync(() => api.preferences(), []);
@@ -114,6 +116,11 @@ export default function SettingsScreen() {
           <ThemedText type="smallBold">계정</ThemedText>
           <Row label="이름" value={user?.name ?? '-'} />
           <Row label="이메일" value={user?.email ?? '-'} />
+          <Button
+            label="비밀번호 변경"
+            variant="secondary"
+            onPress={() => router.push('/password')}
+          />
         </Card>
 
         <Card>

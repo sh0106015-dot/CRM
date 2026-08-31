@@ -61,6 +61,10 @@ function RootNavigator() {
         name="tags"
         options={{ headerShown: true, title: '태그 관리', presentation: 'modal' }}
       />
+      <Stack.Screen
+        name="password"
+        options={{ headerShown: true, title: '비밀번호 변경', presentation: 'modal' }}
+      />
     </Stack>
   );
 }

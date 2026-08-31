@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Patch, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
 import { UsersService } from './users.service';
 
@@ -25,6 +26,14 @@ export class UsersController {
     @Body() dto: UpdatePreferencesDto,
   ) {
     return this.users.updatePreferences(userId, dto);
+  }
+
+  @Patch('password')
+  changePassword(
+    @CurrentUser('userId') userId: string,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return this.users.changePassword(userId, dto);
   }
 
   /** 회원탈퇴 (PRD 21) - 관련 데이터 전체 cascade 삭제 */
