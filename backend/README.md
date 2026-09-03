@@ -102,8 +102,9 @@ OAuth 는 앱에서 네이티브 로그인 → 공급자 ID 토큰을 서버로 
 
 - `DailyNews` (`date` unique, `quote`/`indices`/`sections` JSON) — 시드에 2026-09-02 샘플 포함.
 - `NewsScheduler` 크론이 **매일 07:00** `NewsService.generateForToday()` 실행 (`NEWS_CRON_ENABLED`).
-- 생성은 Claude(`LlmClient`)로 하며 `ANTHROPIC_API_KEY` 미설정 시 no-op — 직전 브리핑이 계속 제공된다.
-- 지수 값은 AI 추정치다. 실제 시세가 필요하면 외부 뉴스/시세 API 를 연동해야 한다.
+- 생성은 Claude(`LlmClient`)의 **web_search 도구**로 실제 오늘자 뉴스·지수·환율·유가를 조회해 만든다.
+- `ANTHROPIC_API_KEY` 미설정 시 no-op — 직전 브리핑이 계속 제공된다.
+- 계정에 웹 검색 도구가 비활성이면 검색 없이 생성되어 정확도가 떨어질 수 있다.
 
 ### 태그 — `TagsModule` (PRD 16)
 | Method | Path | 설명 |

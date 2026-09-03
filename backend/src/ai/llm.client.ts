@@ -31,24 +31,44 @@ export class LlmClient {
     return this.client !== null;
   }
 
-  /** system + user 프롬프트로 텍스트 응답을 받는다. */
+  /** system + user 프롬프트로 텍스트 응답을 받는다. webSearch=true 면 웹 검색 도구를 붙인다. */
   async complete(params: {
     system: string;
     user: string;
     maxTokens?: number;
+    webSearch?: boolean;
+    maxSearches?: number;
   }): Promise<string> {
     if (!this.client) {
       throw new Error('LLM_DISABLED');
     }
-    // claude-opus-5 는 adaptive thinking 이 기본값이므로 thinking 파라미터를 생략한다.
-    const response = await this.client.messages.create({
-      model: this.model,
-      max_tokens: params.maxTokens ?? 1200,
-      system: params.system,
-      messages: [{ role: 'user', content: params.user }],
-    });
+    const tools: Anthropic.Messages.ToolUnion[] = params.webSearch
+      ? [
+          {
+            type: 'web_search_20250305',
+            name: 'web_search',
+            max_uses: params.maxSearches ?? 5,
+          },
+        ]
+      : [];
 
-    return response.content
+    const messages: Anthropic.MessageParam[] = [{ role: 'user', content: params.user }];
+    let response: Anthropic.Message | undefined;
+
+    // 서버 도구가 pause_turn 을 반환하면 이어서 요청한다 (최대 4회).
+    for (let i = 0; i < 4; i += 1) {
+      response = await this.client.messages.create({
+        model: this.model,
+        max_tokens: params.maxTokens ?? 1200,
+        system: params.system,
+        messages,
+        ...(tools.length ? { tools } : {}),
+      });
+      if (response.stop_reason !== 'pause_turn') break;
+      messages.push({ role: 'assistant', content: response.content });
+    }
+
+    return (response?.content ?? [])
       .filter((block): block is Anthropic.TextBlock => block.type === 'text')
       .map((block) => block.text)
       .join('\n')
@@ -60,6 +80,8 @@ export class LlmClient {
     system: string;
     user: string;
     maxTokens?: number;
+    webSearch?: boolean;
+    maxSearches?: number;
   }): Promise<T | null> {
     const raw = await this.complete({
       ...params,
