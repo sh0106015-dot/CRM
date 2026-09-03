@@ -202,8 +202,9 @@ const styles = StyleSheet.create({
   },
   chipRow: {
     paddingHorizontal: Spacing.four,
-    paddingBottom: Spacing.three,
-    gap: Spacing.one,
+    paddingBottom: Spacing.two,
+    gap: 6,
+    alignItems: 'center',
   },
   list: { padding: Spacing.four, paddingTop: 0, gap: Spacing.three },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

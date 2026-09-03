@@ -158,7 +158,9 @@ export function Chip({
           backgroundColor: selected ? '#208AEF' : theme.backgroundElement,
         },
       ]}>
-      <ThemedText type="small" style={{ color: selected ? '#ffffff' : theme.textSecondary }}>
+      <ThemedText
+        type="small"
+        style={[styles.chipText, { color: selected ? '#ffffff' : theme.textSecondary }]}>
         {label}
       </ThemedText>
     </Pressable>
@@ -232,9 +234,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chip: {
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.one,
-    borderRadius: Spacing.five,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+  },
+  chipText: {
+    fontSize: 13,
+    lineHeight: 15,
+    fontWeight: 600,
   },
   field: {
     borderRadius: Spacing.two,
