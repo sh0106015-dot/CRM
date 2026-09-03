@@ -82,12 +82,13 @@ OAuth 는 앱에서 네이티브 로그인 → 공급자 ID 토큰을 서버로 
 | Method | Path | 설명 |
 | --- | --- | --- |
 | POST | `/customers` | 고객 등록 (tags, interests 포함) |
-| GET | `/customers?q=&filter=&sort=&page=&pageSize=` | 검색·필터·정렬·페이지네이션 |
+| GET | `/customers?q=&filter=&tag=&sort=&page=&pageSize=` | 검색·필터·태그·정렬·페이지네이션 |
 | GET | `/customers/:id` | 상세 (상담이력·일정·태그·AI추천 포함) |
 | PATCH | `/customers/:id` | 수정 (tags 전체 교체) |
 | DELETE | `/customers/:id` | 삭제 |
 
 - `filter`: `NEEDS_CARE` `RECENT_CONSULT` `LONG_UNMANAGED` `NEW` `VIP` `BIRTHDAY` `CONTRACT` `CONSULT_SCHEDULED`
+- `tag`: 태그명 (콤마 구분 시 하나라도 일치)
 - `sort`: `AI_SCORE`(기본) `LAST_CONTACT` `CREATED_AT` `NAME`
 
 ### 태그 — `TagsModule` (PRD 16)

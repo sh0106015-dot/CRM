@@ -65,7 +65,7 @@ src/
 │   └── (tabs)/
 │       ├── _layout.tsx     NativeTabs 5탭
 │       ├── index.tsx       홈 — /ai/dashboard (카드 탭 → 상세)
-│       ├── customers.tsx   고객 — /customers (검색 + 점수 배지 + "+ 등록")
+│       ├── customers.tsx   고객 — /customers (검색 + 필터/태그 칩 바 + 점수 배지 + 태그 관리 / 등록)
 │       ├── ai.tsx          AI추천 — /ai/dashboard + 재계산(/ai/recompute)
 │       ├── schedule.tsx    일정 — /schedules/today + /schedules
 │       └── settings.tsx    설정 — 계정 · 알림 토글 · AI 말투/추천빈도 · 개인정보 · 로그아웃/회원탈퇴

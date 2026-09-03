@@ -38,6 +38,11 @@ export class QueryCustomersDto {
   @IsEnum(CustomerFilter)
   filter?: CustomerFilter;
 
+  /** 태그로 필터 (콤마 구분 시 하나라도 일치) */
+  @IsOptional()
+  @IsString()
+  tag?: string;
+
   @IsOptional()
   @IsEnum(CustomerSort)
   sort?: CustomerSort = CustomerSort.AI_SCORE;

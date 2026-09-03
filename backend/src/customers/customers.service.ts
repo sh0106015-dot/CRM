@@ -109,6 +109,16 @@ export class CustomersService {
         break;
     }
 
+    if (query.tag) {
+      const tags = query.tag
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+      if (tags.length) {
+        and.push({ tags: { some: { tag: { in: tags } } } });
+      }
+    }
+
     if (and.length) where.AND = and;
 
     const orderBy = this.buildOrderBy(query.sort);

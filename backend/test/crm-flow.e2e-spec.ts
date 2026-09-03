@@ -170,6 +170,22 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
     expect(res.body.map((t: { tag: string }) => t.tag)).not.toContain('관리필요');
   });
 
+  it('태그로 고객 필터링 (?tag=)', async () => {
+    const hit = await http
+      .get('/api/customers')
+      .query({ tag: '우수고객' })
+      .set(auth(tokenA))
+      .expect(200);
+    expect(hit.body.items.some((c: { id: string }) => c.id === customerId)).toBe(true);
+
+    const miss = await http
+      .get('/api/customers')
+      .query({ tag: '존재하지않는태그' })
+      .set(auth(tokenA))
+      .expect(200);
+    expect(miss.body.items.some((c: { id: string }) => c.id === customerId)).toBe(false);
+  });
+
   // --- 상담 기록 --------------------------------------------------------
   it('상담 기록 저장 (autoSummarize) → 요약 생성 + 마지막 연락일 갱신', async () => {
     const before = await http.get(`/api/customers/${customerId}`).set(auth(tokenA)).expect(200);

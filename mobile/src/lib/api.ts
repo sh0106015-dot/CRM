@@ -262,8 +262,13 @@ export const api = {
 
   recompute: () => request<{ updated: number }>('/ai/recompute', { method: 'POST' }),
 
-  customers: (query?: { q?: string; filter?: string; sort?: string; page?: number }) =>
-    request<CustomerListResponse>('/customers', { query }),
+  customers: (query?: {
+    q?: string;
+    filter?: string;
+    tag?: string;
+    sort?: string;
+    page?: number;
+  }) => request<CustomerListResponse>('/customers', { query }),
 
   customer: (id: string) => request<CustomerDetail>(`/customers/${id}`),
 
