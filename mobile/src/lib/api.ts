@@ -172,6 +172,26 @@ export interface TagSummary {
   count: number;
 }
 
+export interface NewsIndex {
+  label: string;
+  unit?: string;
+  value: string;
+}
+export interface NewsItem {
+  title: string;
+  body?: string;
+}
+export interface NewsSection {
+  title: string;
+  items: NewsItem[];
+}
+export interface DailyNews {
+  date: string;
+  quote?: { text: string; author?: string } | null;
+  indices: NewsIndex[];
+  sections: NewsSection[];
+}
+
 export type AiRecommendationFrequency = 'DAILY' | 'WEEKLY' | 'OFF';
 
 export interface UserPreferences {
@@ -257,6 +277,8 @@ export const api = {
     request<{ deleted: number }>(`/tags/${encodeURIComponent(tag)}`, { method: 'DELETE' }),
 
   dashboard: () => request<Dashboard>('/ai/dashboard'),
+
+  news: () => request<DailyNews>('/news/today'),
 
   weeklyReport: () => request<WeeklyReport>('/ai/report/weekly'),
 

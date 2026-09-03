@@ -1,5 +1,12 @@
 import { useRouter } from 'expo-router';
-import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -19,6 +26,41 @@ import { useAuth } from '@/lib/auth';
 import { useAsync } from '@/lib/use-async';
 
 const ORDER: Priority[] = ['IMMEDIATE', 'TODAY', 'THIS_WEEK', 'NORMAL'];
+
+function NewsCard() {
+  const router = useRouter();
+  const { data } = useAsync(() => api.news(), []);
+  if (!data) return null;
+  const headlines = data.sections[0]?.items.slice(0, 3) ?? [];
+
+  return (
+    <Pressable
+      onPress={() => router.push('/news')}
+      style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}>
+      <Card>
+        <View style={styles.rowBetween}>
+          <ThemedText type="smallBold">📰 오늘의 뉴스 · {data.date}</ThemedText>
+          <Muted>전체보기 ›</Muted>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.idxStrip}>
+          {data.indices.map((ix) => (
+            <View key={ix.label} style={styles.idxChip}>
+              <Muted>{ix.label}</Muted>
+              <ThemedText type="small" style={styles.idxVal}>
+                {ix.value}
+              </ThemedText>
+            </View>
+          ))}
+        </ScrollView>
+        {headlines.map((h, i) => (
+          <ThemedText key={i} type="small" numberOfLines={1}>
+            • {h.title}
+          </ThemedText>
+        ))}
+      </Card>
+    </Pressable>
+  );
+}
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -49,6 +91,7 @@ export default function HomeScreen() {
                 <Button label="주간 리포트" variant="secondary" onPress={() => router.push('/report')} />
               }
             />
+            <NewsCard />
             <View style={styles.counts}>
               {ORDER.map((p) => (
                 <Card key={p} style={styles.countCard}>
@@ -108,6 +151,9 @@ const styles = StyleSheet.create({
   countCard: { flex: 1, alignItems: 'center', gap: 0 },
   countNum: { fontSize: 28, lineHeight: 34 },
   sectionTitle: { marginTop: Spacing.two },
+  idxStrip: { gap: Spacing.two, paddingVertical: Spacing.one },
+  idxChip: { gap: 1 },
+  idxVal: { fontWeight: 700 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   name: { fontWeight: 700 },
   empty: { padding: Spacing.four, alignItems: 'center' },

@@ -32,8 +32,11 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
     http = request(app.getHttpServer());
   });
 
+  const newsDate = new Date('2000-01-01'); // 테스트 전용 날짜
+
   afterAll(async () => {
     await prisma.user.deleteMany({ where: { email: { in: [userA.email, userB.email] } } });
+    await prisma.dailyNews.deleteMany({ where: { date: newsDate } });
     await app.close();
   });
 
@@ -339,6 +342,27 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
     );
     expect(res.body.analysis).toEqual(expect.any(String));
     expect(res.body.stats.total).toBeGreaterThanOrEqual(1);
+  });
+
+  it('오늘의 뉴스 브리핑', async () => {
+    await prisma.dailyNews.upsert({
+      where: { date: newsDate },
+      create: {
+        date: newsDate,
+        quote: { text: '테스트 인용', author: '테스터' },
+        indices: [{ label: '코스피', value: '1' }],
+        sections: [{ title: '주요 뉴스', items: [{ title: '헤드라인', body: '본문' }] }],
+      },
+      update: {},
+    });
+
+    const res = await http.get('/api/news/today').set(auth(tokenA)).expect(200);
+    expect(res.body.date).toEqual(expect.any(String));
+    expect(Array.isArray(res.body.indices)).toBe(true);
+    expect(Array.isArray(res.body.sections)).toBe(true);
+    expect(res.body.sections[0].items[0].title).toEqual(expect.any(String));
+
+    await http.get('/api/news/today').expect(401); // 인증 필요
   });
 
   // --- 내 정보 / 설정 (PRD 21) --------------------------------------

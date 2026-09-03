@@ -95,6 +95,19 @@ model User {
   @@map("users")
 }
 
+/// 홈 화면 "오늘의 뉴스" 브리핑 (날짜별 1건)
+model DailyNews {
+  id        String   @id @default(cuid())
+  date      DateTime @unique @db.Date
+  quote     Json? // { text, author }
+  indices   Json // [{ label, unit?, value }]
+  sections  Json // [{ title, items: [{ title, body? }] }]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("daily_news")
+}
+
 /// FCM / Expo 푸시 토큰 (PRD 19 알림 시스템)
 model DeviceToken {
   id         String         @id @default(cuid())

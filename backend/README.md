@@ -94,6 +94,13 @@ OAuth 는 앱에서 네이티브 로그인 → 공급자 ID 토큰을 서버로 
 - `tag`: 태그명 (콤마 구분 시 하나라도 일치)
 - `sort`: `AI_SCORE`(기본) `LAST_CONTACT` `CREATED_AT` `NAME`
 
+### 뉴스 — `NewsModule`
+| Method | Path | 설명 |
+| --- | --- | --- |
+| GET | `/news/today` | 홈 화면 "오늘의 뉴스" 브리핑 (가장 최근 `DailyNews` 1건) |
+
+`DailyNews` (`date` unique, `quote`/`indices`/`sections` JSON) — 시드에 2026-09-02 샘플 포함.
+
 ### 태그 — `TagsModule` (PRD 16)
 | Method | Path | 설명 |
 | --- | --- | --- |

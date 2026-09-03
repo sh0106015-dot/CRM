@@ -65,6 +65,10 @@ function RootNavigator() {
         name="password"
         options={{ headerShown: true, title: '비밀번호 변경', presentation: 'modal' }}
       />
+      <Stack.Screen
+        name="news"
+        options={{ headerShown: true, title: '오늘의 뉴스', presentation: 'modal' }}
+      />
     </Stack>
   );
 }
