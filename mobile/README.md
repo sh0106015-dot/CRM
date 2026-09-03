@@ -3,7 +3,7 @@
 AI 스마트 고객관리 플랫폼의 모바일 앱.
 
 - **프레임워크**: Expo SDK 57 · React Native 0.86 · expo-router (파일 기반 라우팅)
-- **네비게이션**: 하단 5탭 (`홈 / 고객 / AI추천 / 일정 / 설정`) — `expo-router/unstable-native-tabs`
+- **네비게이션**: 하단 5탭 (`홈 / 고객 / AI추천 / 일정 / 메뉴`) — `expo-router/js-tabs` + `@expo/vector-icons`(Ionicons). 네이티브·웹 모두 동일하게 렌더
 - **인증**: 이메일/비번 + Google(`expo-auth-session`) + Apple(`expo-apple-authentication`). JWT 토큰은 `expo-secure-store` 에 저장
 - **푸시**: `expo-notifications` — 로그인 시 Expo 푸시 토큰을 `/devices` 로 등록, 로그아웃 시 해제
 - **백엔드**: `../backend` (NestJS, 기본 `:3000`)
@@ -63,7 +63,7 @@ src/
 │   ├── report.tsx             주간 리포트 (모달) — GET /ai/report/weekly (홈 헤더에서 진입)
 │   ├── tags.tsx               태그 관리 (모달) — 목록/이름변경(prompt)/삭제 (고객 헤더에서 진입)
 │   └── (tabs)/
-│       ├── _layout.tsx     NativeTabs 5탭
+│       ├── _layout.tsx     하단 5탭 (홈·고객·AI추천·일정·메뉴, Ionicons)
 │       ├── index.tsx       홈 — /ai/dashboard (카드 탭 → 상세)
 │       ├── customers.tsx   고객 — /customers (검색 + 필터/태그 칩 바 + 점수 배지 + 태그 관리 / 등록)
 │       ├── ai.tsx          AI추천 — /ai/dashboard + 재계산(/ai/recompute)
@@ -89,6 +89,6 @@ src/
 
 ## 상태
 
-스캐폴딩 — 5탭 + 인증 + 9개 화면(탭 5 + 고객 상세/등록/수정/상담기록)이 백엔드 실데이터와 연동됨.
-AI 문자 생성 모달 · 상담 AI 자동 요약 포함. `tsc --noEmit` 통과, Android 번들 성공.
-푸시 알림(FCM), 상담이력 편집/삭제 UI는 미구현.
+하단 5탭 + 인증(이메일 + Google/Apple) + 14개 화면이 백엔드 실데이터와 연동.
+AI 문자/요약/주간리포트, 태그 일괄 관리, 사용자 설정, 비밀번호 변경, 푸시(Expo/FCM),
+크로스플랫폼 다이얼로그 포함. `tsc` · `eslint` · Android 번들 · 웹 실행 모두 통과.

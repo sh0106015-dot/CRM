@@ -1,41 +1,84 @@
-import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import { useColorScheme } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs } from 'expo-router/js-tabs';
+import { useColorScheme, type ColorValue } from 'react-native';
 
 import { Colors } from '@/constants/theme';
+
+type IoniconName = keyof typeof Ionicons.glyphMap;
+
+function TabBarIcon({
+  name,
+  color,
+  size,
+}: {
+  name: IoniconName;
+  color: ColorValue;
+  size: number;
+}) {
+  return <Ionicons name={name} size={size} color={color} />;
+}
 
 export default function TabsLayout() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
 
   return (
-    <NativeTabs
-      backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}>
-      <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>홈</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="house" md="home" />
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="customers">
-        <NativeTabs.Trigger.Label>고객</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="person.2" md="group" />
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="ai">
-        <NativeTabs.Trigger.Label>AI추천</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="sparkles" md="auto_awesome" />
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="schedule">
-        <NativeTabs.Trigger.Label>일정</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="calendar" md="calendar_month" />
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="settings">
-        <NativeTabs.Trigger.Label>설정</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="gearshape" md="settings" />
-      </NativeTabs.Trigger>
-    </NativeTabs>
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: '#208AEF',
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: {
+          backgroundColor: colors.background,
+          borderTopColor: colors.backgroundElement,
+        },
+        tabBarLabelStyle: { fontSize: 11 },
+      }}>
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: '홈',
+          tabBarIcon: ({ color, size, focused }) => (
+            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="customers"
+        options={{
+          title: '고객',
+          tabBarIcon: ({ color, size, focused }) => (
+            <TabBarIcon name={focused ? 'people' : 'people-outline'} color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="ai"
+        options={{
+          title: 'AI추천',
+          tabBarIcon: ({ color, size, focused }) => (
+            <TabBarIcon name={focused ? 'sparkles' : 'sparkles-outline'} color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="schedule"
+        options={{
+          title: '일정',
+          tabBarIcon: ({ color, size, focused }) => (
+            <TabBarIcon name={focused ? 'calendar' : 'calendar-outline'} color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: '메뉴',
+          tabBarIcon: ({ color, size, focused }) => (
+            <TabBarIcon name={focused ? 'menu' : 'menu-outline'} color={color} size={size} />
+          ),
+        }}
+      />
+    </Tabs>
   );
 }
