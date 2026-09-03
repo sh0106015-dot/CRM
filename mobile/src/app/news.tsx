@@ -1,9 +1,10 @@
 import { Stack } from 'expo-router';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Card, ErrorView, Loading, Muted } from '@/components/ui-kit';
+import { Button, Card, ErrorView, Loading, Muted } from '@/components/ui-kit';
 import { Spacing } from '@/constants/theme';
 import { api } from '@/lib/api';
 import { useAsync } from '@/lib/use-async';
@@ -13,6 +14,24 @@ export default function NewsScreen() {
     () => api.news(),
     [],
   );
+  const [regenerating, setRegenerating] = useState(false);
+
+  const regenerate = async () => {
+    setRegenerating(true);
+    try {
+      const r = await api.refreshNews();
+      if (r.generated) {
+        Alert.alert('완료', `${r.date} 브리핑을 새로 생성했습니다.`);
+        reload();
+      } else {
+        Alert.alert('건너뜀', r.reason ?? '생성하지 않았습니다. (AI 미구성)');
+      }
+    } catch (e) {
+      Alert.alert('오류', e instanceof Error ? e.message : '새로고침 실패');
+    } finally {
+      setRegenerating(false);
+    }
+  };
 
   return (
     <ThemedView style={styles.flex}>
@@ -25,7 +44,15 @@ export default function NewsScreen() {
         <ScrollView
           contentContainerStyle={styles.content}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}>
-          <Muted>{data.date} 주요 뉴스 브리핑</Muted>
+          <View style={styles.rowBetween}>
+            <Muted>{data.date} 주요 뉴스 브리핑 · 매일 07:00 자동 갱신</Muted>
+            <Button
+              label={regenerating ? '생성 중…' : '새로 생성'}
+              variant="secondary"
+              onPress={regenerate}
+              disabled={regenerating}
+            />
+          </View>
 
           {data.quote ? (
             <Card>
@@ -81,6 +108,12 @@ export default function NewsScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: Spacing.four, gap: Spacing.three },
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
   quote: { fontStyle: 'italic' },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   idxCell: { width: '33%', paddingVertical: Spacing.one, gap: 2 },

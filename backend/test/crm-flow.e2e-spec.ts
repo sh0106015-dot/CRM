@@ -365,6 +365,15 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
     await http.get('/api/news/today').expect(401); // 인증 필요
   });
 
+  it('오늘의 뉴스 수동 새로고침 (AI 미구성 시 no-op)', async () => {
+    const res = await http.post('/api/news/refresh').set(auth(tokenA)).expect(201);
+    expect(typeof res.body.generated).toBe('boolean');
+    // ANTHROPIC_API_KEY 없으면 생성하지 않고 직전 브리핑 유지
+    if (!res.body.generated) expect(res.body.reason).toEqual(expect.any(String));
+
+    await http.post('/api/news/refresh').expect(401);
+  });
+
   // --- 내 정보 / 설정 (PRD 21) --------------------------------------
   it('GET /me — 프로필 + 기본 설정값', async () => {
     const res = await http.get('/api/me').set(auth(tokenA)).expect(200);

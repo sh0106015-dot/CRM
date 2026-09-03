@@ -8,6 +8,6 @@ import { LlmClient } from './llm.client';
   imports: [ConfigModule],
   controllers: [AiController],
   providers: [AiService, LlmClient],
-  exports: [AiService],
+  exports: [AiService, LlmClient],
 })
 export class AiModule {}

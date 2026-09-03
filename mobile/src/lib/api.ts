@@ -280,6 +280,12 @@ export const api = {
 
   news: () => request<DailyNews>('/news/today'),
 
+  refreshNews: () =>
+    request<{ generated: boolean; date?: string; sections?: number; reason?: string }>(
+      '/news/refresh',
+      { method: 'POST' },
+    ),
+
   weeklyReport: () => request<WeeklyReport>('/ai/report/weekly'),
 
   recompute: () => request<{ updated: number }>('/ai/recompute', { method: 'POST' }),
