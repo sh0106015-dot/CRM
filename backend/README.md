@@ -74,9 +74,12 @@ OAuth 는 앱에서 네이티브 로그인 → 공급자 ID 토큰을 서버로 
 | DELETE | `/devices/:token` | 푸시 토큰 해제 (로그아웃 시) |
 | POST | `/notifications/daily-digest/run` | 지금 나에게 다이제스트 발송 (수동/테스트) |
 
-- 발송은 **Expo Push Service** 경유 (`ExponentPushToken[...]`) — Android=FCM, iOS=APNs.
+- `PushService` 가 토큰 형태로 경로를 나눈다:
+  - `ExponentPushToken[...]` / `ExpoPushToken[...]` → **Expo Push Service** (Android=FCM, iOS=APNs)
+  - 그 외(standalone 빌드의 원시 FCM 등록 토큰) → **firebase-admin** (`FcmService`).
+    `FIREBASE_SERVICE_ACCOUNT` 또는 `GOOGLE_APPLICATION_CREDENTIALS` 미설정 시 해당 토큰은 건너뜀.
 - 매일 09:00 `DigestScheduler` 크론이 전체 사용자에게 "오늘 관리 추천 N명 · 내일 상담 N건" 푸시.
-- 유효하지 않은 토큰(`DeviceNotRegistered`)은 발송 시 자동 정리.
+- 유효하지 않은 토큰(`DeviceNotRegistered` / FCM `registration-token-not-registered`)은 발송 시 자동 정리.
 
 ### 고객 — `CustomersModule` (PRD 7·8·16·17)
 | Method | Path | 설명 |

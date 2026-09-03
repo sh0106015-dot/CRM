@@ -441,16 +441,28 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
     // 재등록(upsert) 도 성공해야 한다
     await http.post('/api/devices').set(auth(tokenA)).send({ token }).expect(201);
 
+    // 원시 FCM 토큰(비-Expo)도 등록 가능해야 하고, 다이제스트가 크래시 없이 동작
+    const fcmToken = `fcm-raw-${stamp}`;
+    await http
+      .post('/api/devices')
+      .set(auth(tokenA))
+      .send({ token: fcmToken, platform: 'ANDROID' })
+      .expect(201);
+
     const digest = await http
       .post('/api/notifications/daily-digest/run')
       .set(auth(tokenA))
       .expect(201);
     expect(digest.body).toHaveProperty('body');
     expect(digest.body).toHaveProperty('careCount');
-    expect(digest.body.deviceCount).toBeGreaterThanOrEqual(1);
+    expect(digest.body.deviceCount).toBeGreaterThanOrEqual(2);
 
     await http
       .delete(`/api/devices/${encodeURIComponent(token)}`)
+      .set(auth(tokenA))
+      .expect(200);
+    await http
+      .delete(`/api/devices/${encodeURIComponent(fcmToken)}`)
       .set(auth(tokenA))
       .expect(200);
   });

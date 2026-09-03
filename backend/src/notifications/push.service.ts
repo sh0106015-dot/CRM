@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { FcmService } from './fcm.service';
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 
@@ -16,18 +17,22 @@ export interface PushResult {
 }
 
 /**
- * 푸시 발송.
+ * 푸시 발송 라우터.
  *
- * 기본 경로는 Expo Push Service (`ExponentPushToken[...]`) 이며,
- * Android 는 내부적으로 FCM, iOS 는 APNs 로 전달된다.
- * 원시 FCM 토큰을 직접 쓰려면 firebase-admin 을 추가해 확장할 수 있다(미구현).
+ * - `ExponentPushToken[...]` / `ExpoPushToken[...]` → Expo Push Service
+ *   (Android=FCM, iOS=APNs 로 전달)
+ * - 그 외(원시 FCM 등록 토큰) → firebase-admin (`FcmService`).
+ *   FcmService 미구성 시 해당 토큰은 건너뛴다.
  */
 @Injectable()
 export class PushService {
   private readonly logger = new Logger(PushService.name);
   private readonly accessToken?: string;
 
-  constructor(config: ConfigService) {
+  constructor(
+    config: ConfigService,
+    private readonly fcm: FcmService,
+  ) {
     this.accessToken = config.get<string>('EXPO_ACCESS_TOKEN') || undefined;
   }
 
@@ -37,17 +42,36 @@ export class PushService {
 
   async send(tokens: string[], message: PushMessage): Promise<PushResult> {
     const expoTokens = tokens.filter((t) => this.isExpoToken(t));
-    const skipped = tokens.length - expoTokens.length;
-    if (skipped > 0) {
-      this.logger.warn(
-        `${skipped}개의 비-Expo 토큰은 건너뜁니다 (원시 FCM 발송 미구현).`,
-      );
-    }
-    if (expoTokens.length === 0) {
-      return { sent: 0, failed: 0, invalidTokens: [] };
-    }
+    const fcmTokens = tokens.filter((t) => !this.isExpoToken(t));
 
-    const payload = expoTokens.map((to) => ({
+    const results = await Promise.all([
+      this.sendExpo(expoTokens, message),
+      this.sendFcm(fcmTokens, message),
+    ]);
+
+    return results.reduce<PushResult>(
+      (acc, r) => ({
+        sent: acc.sent + r.sent,
+        failed: acc.failed + r.failed,
+        invalidTokens: [...acc.invalidTokens, ...r.invalidTokens],
+      }),
+      { sent: 0, failed: 0, invalidTokens: [] },
+    );
+  }
+
+  private async sendFcm(tokens: string[], message: PushMessage): Promise<PushResult> {
+    if (tokens.length === 0) return empty();
+    if (!this.fcm.enabled) {
+      this.logger.warn(`${tokens.length}개의 원시 FCM 토큰은 건너뜁니다 (FCM 미구성).`);
+      return empty();
+    }
+    return this.fcm.send(tokens, message);
+  }
+
+  private async sendExpo(tokens: string[], message: PushMessage): Promise<PushResult> {
+    if (tokens.length === 0) return empty();
+
+    const payload = tokens.map((to) => ({
       to,
       title: message.title,
       body: message.body,
@@ -73,7 +97,7 @@ export class PushService {
 
       if (!res.ok || json.errors) {
         this.logger.error(`Expo Push 응답 오류: ${JSON.stringify(json.errors ?? json)}`);
-        return { sent: 0, failed: expoTokens.length, invalidTokens: [] };
+        return { sent: 0, failed: tokens.length, invalidTokens: [] };
       }
 
       const tickets = json.data ?? [];
@@ -86,14 +110,18 @@ export class PushService {
         } else {
           failed += 1;
           if (ticket.details?.error === 'DeviceNotRegistered') {
-            invalidTokens.push(expoTokens[i]);
+            invalidTokens.push(tokens[i]);
           }
         }
       });
       return { sent, failed, invalidTokens };
     } catch (err) {
       this.logger.error(`Expo Push 발송 실패: ${String(err)}`);
-      return { sent: 0, failed: expoTokens.length, invalidTokens: [] };
+      return { sent: 0, failed: tokens.length, invalidTokens: [] };
     }
   }
+}
+
+function empty(): PushResult {
+  return { sent: 0, failed: 0, invalidTokens: [] };
 }
