@@ -1,5 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { LlmClient } from '../ai/llm.client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import {
@@ -11,9 +16,69 @@ import { UpdateCustomerDto } from './dto/update-customer.dto';
 
 const DAY = 24 * 60 * 60 * 1000;
 
+export interface CardDraft {
+  name?: string;
+  phone?: string;
+  occupation?: string;
+  address?: string;
+  notes?: string;
+}
+
 @Injectable()
 export class CustomersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly llm: LlmClient,
+  ) {}
+
+  /**
+   * 명함 이미지에서 고객 정보 초안을 추출한다. (저장하지 않음 - 앱이 등록 폼에 채운다)
+   * PRD 17: "연락처에서 가져오기" 의 확장. Insurance AI Lab 의 명함 DB 저장 기능 참고.
+   */
+  async draftFromCard(
+    image: string,
+    mimeType: 'image/png' | 'image/jpeg' | 'image/webp' | 'image/gif',
+  ): Promise<CardDraft> {
+    if (!this.llm.enabled) {
+      throw new ServiceUnavailableException(
+        '명함 인식은 AI(ANTHROPIC_API_KEY) 설정이 필요합니다.',
+      );
+    }
+
+    const raw = await this.llm.extractFromImageJson<{
+      name?: string;
+      phone?: string;
+      mobile?: string;
+      company?: string;
+      title?: string;
+      email?: string;
+      address?: string;
+    }>({
+      base64: image,
+      mediaType: mimeType,
+      system:
+        '당신은 명함 이미지에서 연락처 정보를 추출한다. 보이는 텍스트만 사용하고 추측하지 않는다.',
+      user: '이 명함에서 JSON 으로 추출: {"name","phone","mobile","company","title","email","address"}. 없는 항목은 생략.',
+    });
+
+    if (!raw) throw new ServiceUnavailableException('명함을 인식하지 못했습니다.');
+
+    const notes = [
+      raw.company && `회사: ${raw.company}`,
+      raw.title && `직함: ${raw.title}`,
+      raw.email && `이메일: ${raw.email}`,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    return {
+      name: raw.name?.trim() || undefined,
+      phone: (raw.mobile || raw.phone)?.trim() || undefined,
+      occupation: raw.title?.trim() || undefined,
+      address: raw.address?.trim() || undefined,
+      notes: notes || undefined,
+    };
+  }
 
   async create(userId: string, dto: CreateCustomerDto) {
     const { tags, birthDate, lastContactAt, nextContactAt, ...rest } = dto;

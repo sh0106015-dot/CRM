@@ -13,6 +13,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
+import { FromCardDto } from './dto/from-card.dto';
 import { QueryCustomersDto } from './dto/query-customers.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 
@@ -27,6 +28,12 @@ export class CustomersController {
     @Body() dto: CreateCustomerDto,
   ) {
     return this.customers.create(userId, dto);
+  }
+
+  /** 명함 이미지 → 고객 정보 초안 (등록 폼 프리필용, 저장 안 함) */
+  @Post('from-card')
+  fromCard(@Body() dto: FromCardDto) {
+    return this.customers.draftFromCard(dto.image, dto.mimeType);
   }
 
   @Get()

@@ -106,6 +106,19 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
     expect(res.body.items.some((c: { id: string }) => c.id === customerId)).toBe(true);
   });
 
+  it('명함 인식 → 초안 (형식 검증 + AI 미구성 503)', async () => {
+    await http.post('/api/customers/from-card').set(auth(tokenA)).send({}).expect(400);
+    await http.post('/api/customers/from-card').expect(401);
+
+    const fakeImage = Buffer.from('x'.repeat(200)).toString('base64');
+    const res = await http
+      .post('/api/customers/from-card')
+      .set(auth(tokenA))
+      .send({ image: fakeImage, mimeType: 'image/png' });
+    // ANTHROPIC_API_KEY 없으면 503, 있으면 200
+    expect([200, 503]).toContain(res.status);
+  });
+
   it('고객 상세 → 상담이력 비어있고 추천 없음', async () => {
     const res = await http.get(`/api/customers/${customerId}`).set(auth(tokenA)).expect(200);
     expect(res.body.consultations).toEqual([]);

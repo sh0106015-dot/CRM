@@ -129,6 +129,14 @@ export interface CustomerListResponse {
   items: Customer[];
 }
 
+export interface CardDraft {
+  name?: string;
+  phone?: string;
+  occupation?: string;
+  address?: string;
+  notes?: string;
+}
+
 export interface CreateCustomerInput {
   name: string;
   phone: string;
@@ -302,6 +310,12 @@ export const api = {
 
   createCustomer: (body: CreateCustomerInput) =>
     request<Customer>('/customers', { method: 'POST', body }),
+
+  customerFromCard: (image: string, mimeType: string) =>
+    request<CardDraft>('/customers/from-card', {
+      method: 'POST',
+      body: { image, mimeType },
+    }),
 
   updateCustomer: (id: string, body: Partial<CreateCustomerInput>) =>
     request<Customer>(`/customers/${id}`, { method: 'PATCH', body }),

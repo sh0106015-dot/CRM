@@ -6,6 +6,13 @@ import { Button, Chip, LabeledInput } from '@/components/ui-kit';
 import { Spacing } from '@/constants/theme';
 import type { CreateCustomerInput, Customer } from '@/lib/api';
 
+type FormInitial = Partial<
+  Pick<
+    Customer,
+    'name' | 'phone' | 'birthDate' | 'gender' | 'address' | 'notes' | 'grade' | 'interests' | 'tags'
+  >
+>;
+
 const GRADES = ['NEW', 'GENERAL', 'LONGTERM', 'VIP', 'POTENTIAL'];
 const GRADE_LABEL: Record<string, string> = {
   NEW: '신규',
@@ -33,10 +40,12 @@ export function CustomerForm({
   initial,
   submitLabel,
   onSubmit,
+  header,
 }: {
-  initial?: Customer;
+  initial?: FormInitial;
   submitLabel: string;
   onSubmit: (body: CreateCustomerInput) => Promise<void>;
+  header?: React.ReactNode;
 }) {
   const [name, setName] = useState(initial?.name ?? '');
   const [phone, setPhone] = useState(initial?.phone ?? '');
@@ -91,6 +100,7 @@ export function CustomerForm({
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        {header}
         <LabeledInput label="이름" hint="필수" value={name} onChangeText={setName} />
         <LabeledInput
           label="전화번호"

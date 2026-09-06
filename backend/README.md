@@ -85,6 +85,7 @@ OAuth 는 앱에서 네이티브 로그인 → 공급자 ID 토큰을 서버로 
 | Method | Path | 설명 |
 | --- | --- | --- |
 | POST | `/customers` | 고객 등록 (tags, interests 포함) |
+| POST | `/customers/from-card` | 명함 이미지(base64) → 고객 정보 초안 (Claude 비전, 저장 안 함, AI 미구성 시 503) |
 | GET | `/customers?q=&filter=&tag=&sort=&page=&pageSize=` | 검색·필터·태그·정렬·페이지네이션 |
 | GET | `/customers/:id` | 상세 (상담이력·일정·태그·AI추천 포함) |
 | PATCH | `/customers/:id` | 수정 (tags 전체 교체) |
