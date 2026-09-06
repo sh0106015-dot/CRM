@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import {
   Consultation,
   Customer,
@@ -483,6 +488,65 @@ export class AiService {
       `${topic ? `전에 말씀 나눴던 ${topic}관련해서 ` : ''}` +
       `편하실 때 짧게 통화 가능하실까요?`
     );
+  }
+
+  // -------------------------------------------------------------------------
+  // 보험증권/약관 문서 요약 (Insurance AI Lab 참고)
+  // PRD 15장 준수: 보장 적정성/가입 가능성은 판단하지 않고 문서 내용만 요약·추출한다.
+  // -------------------------------------------------------------------------
+  async summarizeDocument(
+    file: string,
+    mimeType: 'application/pdf' | 'image/png' | 'image/jpeg',
+  ): Promise<{
+    docType: string;
+    summary: string;
+    coverages: { name: string; detail: string }[];
+    keyDates: string[];
+    notes: string[];
+  }> {
+    if (!this.llm.enabled) {
+      throw new ServiceUnavailableException(
+        '문서 요약은 AI(ANTHROPIC_API_KEY) 설정이 필요합니다.',
+      );
+    }
+
+    const parsed = await this.llm.analyzeDocumentJson<{
+      docType?: string;
+      summary?: string;
+      coverages?: { name?: string; detail?: string }[];
+      keyDates?: string[];
+      notes?: string[];
+    }>({
+      base64: file,
+      mediaType: mimeType,
+      system:
+        '당신은 보험증권/약관 문서를 정리하는 어시스턴트다. 문서에 적힌 사실만 추출·요약하며, ' +
+        '보장이 충분한지·가입이 적절한지 등 평가나 조언은 절대 하지 않는다.',
+      user: [
+        '이 보험 문서를 JSON 으로 정리하라.',
+        '{',
+        '  "docType": string,   // 예: 보험증권, 약관, 청약서',
+        '  "summary": string,   // 2~3문장 요약',
+        '  "coverages": [ { "name": string, "detail": string } ],  // 담보/보장 항목과 금액·조건',
+        '  "keyDates": string[],  // 계약일·만기일·납입기간 등',
+        '  "notes": string[]      // 특약, 면책, 유의사항 등',
+        '}',
+      ].join('\n'),
+      maxTokens: 1800,
+    });
+
+    if (!parsed?.summary) {
+      throw new ServiceUnavailableException('문서를 인식하지 못했습니다.');
+    }
+    return {
+      docType: parsed.docType?.trim() || '보험 문서',
+      summary: parsed.summary.trim(),
+      coverages: (parsed.coverages ?? [])
+        .filter((c) => c?.name)
+        .map((c) => ({ name: c.name!.trim(), detail: (c.detail ?? '').trim() })),
+      keyDates: parsed.keyDates ?? [],
+      notes: parsed.notes ?? [],
+    };
   }
 }
 

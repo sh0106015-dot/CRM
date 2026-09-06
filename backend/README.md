@@ -151,6 +151,7 @@ OAuth 는 앱에서 네이티브 로그인 → 공급자 ID 토큰을 서버로 
 | GET | `/ai/customers/:customerId/next-actions` | 다음 행동 단계 추천 (PRD 10) |
 | POST | `/ai/customers/:customerId/message` | 개인화 문자 생성 + 저장 (PRD 11) |
 | POST | `/ai/summarize` | 상담 내용 요약 (저장 없음, PRD 13) |
+| POST | `/ai/summarize-document` | 보험증권/약관 PDF·이미지 → 담보·날짜·유의사항 추출 (평가 없이 요약만, AI 미구성 503) |
 
 ## AI 설계 노트
 

@@ -10,6 +10,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AiService } from './ai.service';
 import { GenerateMessageDto } from './dto/generate-message.dto';
+import { SummarizeDocumentDto } from './dto/summarize-document.dto';
 import { SummarizeDto } from './dto/summarize.dto';
 
 @UseGuards(JwtAuthGuard)
@@ -67,5 +68,11 @@ export class AiController {
   @Post('summarize')
   summarize(@Body() dto: SummarizeDto) {
     return this.ai.summarizeConsultation(dto.content);
+  }
+
+  /** 보험증권/약관 문서(PDF·이미지) 요약 (평가 없이 추출만, AI 미구성 시 503) */
+  @Post('summarize-document')
+  summarizeDocument(@Body() dto: SummarizeDocumentDto) {
+    return this.ai.summarizeDocument(dto.file, dto.mimeType);
   }
 }

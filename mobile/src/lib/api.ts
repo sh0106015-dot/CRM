@@ -116,6 +116,14 @@ export interface ConsultationSummary {
   nextContactDate?: string | null;
 }
 
+export interface DocumentSummary {
+  docType: string;
+  summary: string;
+  coverages: { name: string; detail: string }[];
+  keyDates: string[];
+  notes: string[];
+}
+
 export interface CustomerDetail extends Customer {
   consultations: Consultation[];
   schedules: Schedule[];
@@ -373,6 +381,12 @@ export const api = {
 
   summarize: (content: string) =>
     request<ConsultationSummary>('/ai/summarize', { method: 'POST', body: { content } }),
+
+  summarizeDocument: (file: string, mimeType: string) =>
+    request<DocumentSummary>('/ai/summarize-document', {
+      method: 'POST',
+      body: { file, mimeType },
+    }),
 
   analyze: (customerId: string) =>
     request<Recommendation>(`/ai/customers/${customerId}/analyze`, { method: 'POST' }),

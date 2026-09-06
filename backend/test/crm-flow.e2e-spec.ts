@@ -296,6 +296,18 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
     expect(Array.isArray(res.body.keyPoints)).toBe(true);
   });
 
+  it('보험 문서 요약 (형식 400 / 미인증 401 / AI 미구성 503)', async () => {
+    await http.post('/api/ai/summarize-document').set(auth(tokenA)).send({}).expect(400);
+    await http.post('/api/ai/summarize-document').expect(401);
+
+    const fake = Buffer.from('%PDF-1.4\n'.repeat(20)).toString('base64');
+    const res = await http
+      .post('/api/ai/summarize-document')
+      .set(auth(tokenA))
+      .send({ file: fake, mimeType: 'application/pdf' });
+    expect([200, 503]).toContain(res.status);
+  });
+
   // --- AI 분석 / 추천 / 문자 ------------------------------------------
   it('AI 고객분석 → 관리점수 + 우선순위 + 추천', async () => {
     const res = await http

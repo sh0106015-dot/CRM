@@ -129,6 +129,55 @@ export class LlmClient {
       .trim();
     return parseJson<T>(raw);
   }
+
+  /** 문서(PDF base64) 또는 이미지 + 프롬프트로 JSON 추출. (보험증권/약관 요약 등) */
+  async analyzeDocumentJson<T>(params: {
+    base64: string;
+    mediaType:
+      | 'application/pdf'
+      | 'image/png'
+      | 'image/jpeg'
+      | 'image/webp'
+      | 'image/gif';
+    system: string;
+    user: string;
+    maxTokens?: number;
+  }): Promise<T | null> {
+    if (!this.client) {
+      throw new Error('LLM_DISABLED');
+    }
+    const doc: Anthropic.ContentBlockParam =
+      params.mediaType === 'application/pdf'
+        ? {
+            type: 'document',
+            source: {
+              type: 'base64',
+              media_type: 'application/pdf',
+              data: params.base64,
+            },
+          }
+        : {
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: params.mediaType,
+              data: params.base64,
+            },
+          };
+
+    const response = await this.client.messages.create({
+      model: this.model,
+      max_tokens: params.maxTokens ?? 1500,
+      system: `${params.system}\n\n반드시 유효한 JSON 하나만 출력하세요. 코드블록, 설명 문장을 붙이지 마세요.`,
+      messages: [{ role: 'user', content: [doc, { type: 'text', text: params.user }] }],
+    });
+    const raw = response.content
+      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+      .map((b) => b.text)
+      .join('\n')
+      .trim();
+    return parseJson<T>(raw);
+  }
 }
 
 function parseJson<T>(raw: string): T | null {

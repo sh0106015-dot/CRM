@@ -89,6 +89,11 @@ export default function CustomerDetailScreen() {
             onPress={() => router.push(`/customer/${id}/edit`)}
           />
           <Button
+            label="증권 분석"
+            variant="secondary"
+            onPress={() => router.push(`/customer/${id}/document`)}
+          />
+          <Button
             label="일정 +"
             variant="secondary"
             onPress={() => router.push(`/schedule/new?customerId=${id}`)}
@@ -226,7 +231,7 @@ export default function CustomerDetailScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: Spacing.four, gap: Spacing.three },
-  actionBar: { flexDirection: 'row', gap: Spacing.two },
+  actionBar: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.three },
   rowValue: { flexShrink: 1, textAlign: 'right' },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

@@ -55,8 +55,10 @@ src/
 │   │   │   ├── index.tsx        고객 상세 — 정보·상태·AI분석·다음행동·상담이력 + 문자 모달
 │   │   │   │                    (상담이력 탭 → 수정, 액션바에 수정/일정+/상담+)
 │   │   │   ├── edit.tsx         고객 수정 (모달) — PATCH /customers/:id
-│   │   │   └── consultation.tsx 상담 기록 작성/수정/삭제 (모달) — POST/PATCH/DELETE
-│   │   │                        ?editId= 있으면 수정 모드. autoSummarize + /ai/summarize 미리보기
+│   │   │   ├── consultation.tsx 상담 기록 작성/수정/삭제 (모달) — POST/PATCH/DELETE
+│   │   │   │                    ?editId= 있으면 수정 모드. autoSummarize + /ai/summarize 미리보기
+│   │   │   └── document.tsx     증권/약관 분석 (모달) — PDF·이미지 선택 → /ai/summarize-document
+│   │   │                        → 담보·날짜·유의사항, 고객 메모에 추가 가능
 │   │   └── new.tsx             고객 등록 (모달) — POST /customers
 │   ├── schedule/
 │   │   └── new.tsx             일정 추가 (모달) — POST /schedules (?customerId= 연결)

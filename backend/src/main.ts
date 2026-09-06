@@ -10,7 +10,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
   app.enableCors();
-  app.use(json({ limit: '10mb' })); // 명함 이미지 업로드 대응
+  app.use(json({ limit: '25mb' })); // 명함/증권 이미지·PDF 업로드 대응
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
