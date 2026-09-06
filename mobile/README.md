@@ -92,6 +92,11 @@ src/
 > 웹에서도 동작: 토큰 저장은 `localStorage`(네이티브는 SecureStore), 다중 선택
 > 다이얼로그는 `useDialog()`. `npx expo start --web` 로 브라우저에서 확인 가능.
 
+## 테스트
+
+`npm test` (jest-expo) — `src/**/*.test.ts`. 현재: `lib/api` (fetch 래퍼 URL·헤더·바디·에러),
+`components/ui-kit` (`daysSince`). CSS/`@/` alias 는 `jest.moduleNameMapper` 로 처리.
+
 ## 상태
 
 하단 5탭 + 인증(이메일 + Google/Apple) + 14개 화면이 백엔드 실데이터와 연동.

@@ -43,7 +43,7 @@ npx expo start              # Expo Go 로 스캔 · a/i/w
 | Job | 단계 |
 | --- | --- |
 | **backend** | `prisma generate` → `lint:ci` (eslint) → `build` → `test` (unit) → `migrate deploy` (Postgres 16 서비스) → `test:e2e` |
-| **mobile** | `expo export --platform android` (번들 검증) → `tsc --noEmit` → `expo lint` |
+| **mobile** | `expo export --platform android` (번들 검증) → `tsc --noEmit` → `expo lint` → `npm test` (jest) |
 
 ## MVP 범위 (PRD 26)
 
