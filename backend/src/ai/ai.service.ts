@@ -191,6 +191,97 @@ export class AiService {
   }
 
   // -------------------------------------------------------------------------
+  // AI 상담 제안서 (Insurance AI Lab 참고)
+  // PRD 15장 준수: 특정 상품 추천/보장 적정성 판단은 하지 않는다.
+  // 고객 데이터를 바탕으로 상담 준비용 메모(인사·상황요약·논의주제·다음단계)를 만든다.
+  // -------------------------------------------------------------------------
+  async generateProposal(
+    userId: string,
+    customerId: string,
+    focus?: string,
+  ): Promise<{ sections: { heading: string; body: string }[]; savedId: string }> {
+    const customer = await this.loadContext(userId, customerId);
+
+    let sections = this.fallbackProposal(customer, focus);
+
+    if (this.llm.enabled) {
+      try {
+        const parsed = await this.llm.completeJson<{
+          sections?: { heading?: string; body?: string }[];
+        }>({
+          system:
+            '당신은 보험설계사의 고객 상담 제안서를 작성한다. 특정 상품을 추천하거나 ' +
+            '보장이 충분한지 평가하지 않는다. 고객 상황 요약과 함께 상담에서 다룰 주제, ' +
+            '다음 단계를 정중하게 제안한다.',
+          user: [
+            focus ? `이번 상담 주제 방향: ${focus}` : '',
+            this.profileForPrompt(customer),
+            '',
+            'JSON 스키마: {"sections":[{"heading":string,"body":string}]}',
+            '섹션 구성: 인사말 / 고객 현황 요약 / 함께 살펴볼 주제 / 제안 일정 / 맺음말',
+          ]
+            .filter(Boolean)
+            .join('\n'),
+          maxTokens: 1200,
+        });
+        if (parsed?.sections?.length) {
+          sections = parsed.sections
+            .filter((s) => s?.heading && s?.body)
+            .map((s) => ({ heading: s.heading!.trim(), body: s.body!.trim() }));
+        }
+      } catch (err) {
+        this.logger.warn(`generateProposal LLM 실패, 폴백 사용: ${String(err)}`);
+      }
+    }
+
+    const flat = sections.map((s) => `[${s.heading}]\n${s.body}`).join('\n\n');
+    const saved = await this.prisma.aiGeneratedMessage.create({
+      data: {
+        customerId,
+        purpose: '상담 제안서',
+        tone: focus ? `focus:${focus}` : 'proposal',
+        content: flat,
+      },
+      select: { id: true },
+    });
+    return { sections, savedId: saved.id };
+  }
+
+  private fallbackProposal(
+    c: CustomerContext,
+    focus?: string,
+  ): { heading: string; body: string }[] {
+    const interests = c.interests.length ? c.interests.join(', ') : '미확인';
+    const last = c.lastContactAt
+      ? `${Math.floor((Date.now() - c.lastContactAt.getTime()) / DAY)}일 전`
+      : '기록 없음';
+    return [
+      {
+        heading: '인사말',
+        body: `${c.name}님, 안녕하세요. 그동안 잘 지내셨는지요. 상담 준비를 위해 현재까지의 내용을 정리했습니다.`,
+      },
+      {
+        heading: '고객 현황 요약',
+        body: `등급: ${c.grade} / 관심분야: ${interests} / 마지막 연락: ${last} / 상담 이력 ${c.consultations.length}건.`,
+      },
+      {
+        heading: '함께 살펴볼 주제',
+        body:
+          (focus ? `요청하신 '${focus}'를 중심으로, ` : '') +
+          `관심 있게 보고 계신 ${interests} 관련 내용과 최근 상황 변화를 함께 확인해 보면 좋겠습니다.`,
+      },
+      {
+        heading: '제안 일정',
+        body: '편하신 시간에 20~30분 정도 통화 또는 방문 상담을 제안드립니다. 가능하신 시간을 알려주세요.',
+      },
+      {
+        heading: '맺음말',
+        body: '부담 없이 편하게 말씀해 주세요. 도움이 되도록 준비하겠습니다.',
+      },
+    ];
+  }
+
+  // -------------------------------------------------------------------------
   // PRD 13 - AI 상담 요약
   // -------------------------------------------------------------------------
   async summarizeConsultation(content: string): Promise<ConsultationSummary> {

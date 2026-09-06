@@ -344,6 +344,22 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
     expect(detail.body.messages.length).toBeGreaterThanOrEqual(1);
   });
 
+  it('AI 상담 제안서 → 섹션 반환 + 저장', async () => {
+    await http.post(`/api/ai/customers/${customerId}/proposal`).expect(401);
+
+    const res = await http
+      .post(`/api/ai/customers/${customerId}/proposal`)
+      .set(auth(tokenA))
+      .send({ focus: '은퇴 준비' })
+      .expect(201);
+    expect(Array.isArray(res.body.sections)).toBe(true);
+    expect(res.body.sections.length).toBeGreaterThanOrEqual(1);
+    expect(res.body.sections[0]).toEqual(
+      expect.objectContaining({ heading: expect.any(String), body: expect.any(String) }),
+    );
+    expect(res.body.savedId).toEqual(expect.any(String));
+  });
+
   it('AI 관리점수 재계산 + 대시보드', async () => {
     const recompute = await http.post('/api/ai/recompute').set(auth(tokenA)).expect(201);
     expect(recompute.body.updated).toBeGreaterThanOrEqual(1);

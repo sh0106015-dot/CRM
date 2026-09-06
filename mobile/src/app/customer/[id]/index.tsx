@@ -214,7 +214,14 @@ export default function CustomerDetailScreen() {
           </Card>
         ) : null}
 
-        <Button label="AI 문자 생성" onPress={() => setMsgOpen(true)} />
+        <View style={styles.aiRow}>
+          <Button label="AI 문자 생성" onPress={() => setMsgOpen(true)} />
+          <Button
+            label="AI 제안서"
+            variant="secondary"
+            onPress={() => router.push(`/customer/${id}/proposal`)}
+          />
+        </View>
       </ScrollView>
 
       <MessageModal
@@ -232,6 +239,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: Spacing.four, gap: Spacing.three },
   actionBar: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
+  aiRow: { flexDirection: 'row', gap: Spacing.two },
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.three },
   rowValue: { flexShrink: 1, textAlign: 'right' },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

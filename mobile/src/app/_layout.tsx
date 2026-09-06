@@ -52,6 +52,10 @@ function RootNavigator() {
         options={{ headerShown: true, title: '증권/약관 분석', presentation: 'modal' }}
       />
       <Stack.Screen
+        name="customer/[id]/proposal"
+        options={{ headerShown: true, title: 'AI 상담 제안서', presentation: 'modal' }}
+      />
+      <Stack.Screen
         name="customer/new"
         options={{ headerShown: true, title: '고객 등록', presentation: 'modal' }}
       />

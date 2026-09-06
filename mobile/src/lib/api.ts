@@ -124,6 +124,11 @@ export interface DocumentSummary {
   notes: string[];
 }
 
+export interface Proposal {
+  sections: { heading: string; body: string }[];
+  savedId: string;
+}
+
 export interface CustomerDetail extends Customer {
   consultations: Consultation[];
   schedules: Schedule[];
@@ -398,6 +403,12 @@ export const api = {
     request<GeneratedMessage>(`/ai/customers/${customerId}/message`, {
       method: 'POST',
       body,
+    }),
+
+  generateProposal: (customerId: string, focus?: string) =>
+    request<Proposal>(`/ai/customers/${customerId}/proposal`, {
+      method: 'POST',
+      body: { focus },
     }),
 
   schedulesToday: () => request<Schedule[]>('/schedules/today'),

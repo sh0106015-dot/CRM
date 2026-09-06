@@ -64,6 +64,16 @@ export class AiController {
     return this.ai.generateMessage(userId, customerId, dto);
   }
 
+  /** AI 상담 제안서 (특정 상품 추천 없이 상담 준비 메모) */
+  @Post('customers/:customerId/proposal')
+  generateProposal(
+    @CurrentUser('userId') userId: string,
+    @Param('customerId') customerId: string,
+    @Body() body: { focus?: string },
+  ) {
+    return this.ai.generateProposal(userId, customerId, body?.focus?.trim() || undefined);
+  }
+
   /** PRD 13: AI 상담 요약 (저장 없이 요약만) */
   @Post('summarize')
   summarize(@Body() dto: SummarizeDto) {
