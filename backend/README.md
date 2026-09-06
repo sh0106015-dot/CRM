@@ -70,7 +70,7 @@ OAuth 는 앱에서 네이티브 로그인 → 공급자 ID 토큰을 서버로 
 | Method | Path | 설명 |
 | --- | --- | --- |
 | GET | `/public/apply/:token` | 상담 신청 폼용 설계사 정보 `{ agentName }` (유효하지 않은 토큰 404) |
-| POST | `/public/apply/:token` | 상담 신청 `{ name, phone, interest?, message? }` → 해당 설계사의 잠재고객 생성 (태그 `잠재고객`·`상담신청`, `grade: POTENTIAL`, `consultStatus: SCHEDULED`) |
+| POST | `/public/apply/:token` | 상담 신청 `{ name, phone, interest?, message? }` → 해당 설계사의 잠재고객 생성 (태그 `잠재고객`·`상담신청`, `grade: POTENTIAL`, `consultStatus: SCHEDULED`). IP당 분당 10회 제한(`@nestjs/throttler`), 허니팟 `website` 필드 채워지면 무시 |
 
 - `dailyDigestEnabled: false` 사용자는 09:00 다이제스트 크론에서 제외된다.
 - 설정은 `users.preferences` JSON 컬럼에 저장 (마이그레이션 `20260830074711_user_preferences`).

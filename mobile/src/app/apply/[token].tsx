@@ -5,6 +5,7 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,6 +25,7 @@ export default function ApplyScreen() {
   const [phone, setPhone] = useState('');
   const [interest, setInterest] = useState('');
   const [message, setMessage] = useState('');
+  const [website, setWebsite] = useState(''); // 허니팟
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -41,6 +43,7 @@ export default function ApplyScreen() {
         phone: phone.trim(),
         interest: interest.trim() || undefined,
         message: message.trim() || undefined,
+        website: website || undefined,
       });
       setDone(true);
     } catch (e) {
@@ -94,6 +97,15 @@ export default function ApplyScreen() {
                   multiline
                   placeholder="상담 가능 시간, 궁금한 점 등"
                 />
+                {/* 허니팟: 사람 눈에 안 보이는 필드 (봇 차단용) */}
+                <TextInput
+                  value={website}
+                  onChangeText={setWebsite}
+                  autoComplete="off"
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                  style={styles.honeypot}
+                />
               </Card>
 
               {err ? (
@@ -116,4 +128,5 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: Spacing.four, gap: Spacing.three },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.two, padding: Spacing.four },
+  honeypot: { height: 0, width: 0, opacity: 0, position: 'absolute' },
 });

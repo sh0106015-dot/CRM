@@ -21,4 +21,10 @@ export class ApplyLeadDto {
   @IsString()
   @MaxLength(1000)
   message?: string;
+
+  /** 허니팟: 사람은 비워두고 봇은 채우는 숨김 필드 */
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  website?: string;
 }

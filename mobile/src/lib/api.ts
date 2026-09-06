@@ -293,7 +293,13 @@ export const api = {
     request<{ agentName: string }>(`/public/apply/${encodeURIComponent(token)}`),
   submitApply: (
     token: string,
-    body: { name: string; phone: string; interest?: string; message?: string },
+    body: {
+      name: string;
+      phone: string;
+      interest?: string;
+      message?: string;
+      website?: string;
+    },
   ) =>
     request<{ ok: boolean }>(`/public/apply/${encodeURIComponent(token)}`, {
       method: 'POST',

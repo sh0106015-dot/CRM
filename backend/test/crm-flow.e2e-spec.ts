@@ -518,6 +518,28 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
       expect.arrayContaining(['잠재고객', '상담신청']),
     );
 
+    // 허니팟(website) 채워지면 조용히 성공하고 고객은 생성하지 않는다
+    await http
+      .post(`/api/public/apply/${token}`)
+      .send({ name: '봇테스트', phone: '010-0000-0000', website: 'http://spam.example' })
+      .expect(201);
+    const botCheck = await http
+      .get('/api/customers')
+      .query({ q: '봇테스트' })
+      .set(auth(tokenA))
+      .expect(200);
+    expect(botCheck.body.items.length).toBe(0);
+
+    // 분당 10회 초과 시 429
+    const statuses: number[] = [];
+    for (let i = 0; i < 20; i += 1) {
+      const r = await http
+        .post(`/api/public/apply/${token}`)
+        .send({ name: '연타', phone: '010-1' });
+      statuses.push(r.status);
+    }
+    expect(statuses).toContain(429);
+
     // 재발급 → 옛 토큰 무효
     const rotated = await http.post('/api/me/apply-link/rotate').set(auth(tokenA)).expect(201);
     expect(rotated.body.token).not.toBe(token);

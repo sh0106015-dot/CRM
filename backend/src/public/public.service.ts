@@ -21,6 +21,11 @@ export class PublicService {
   async createLead(token: string, dto: ApplyLeadDto) {
     const user = await this.userByToken(token);
 
+    // 허니팟 필드가 채워졌으면 봇으로 간주하고 조용히 성공 응답만 반환
+    if (dto.website && dto.website.trim()) {
+      return { ok: true };
+    }
+
     const notes = [
       '상담 신청 접수',
       dto.message ? `요청사항: ${dto.message}` : null,
