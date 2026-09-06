@@ -24,10 +24,11 @@ function RootNavigator() {
     if (initializing) return;
     SplashScreen.hideAsync();
 
-    const onLogin = segments[0] === 'login';
-    if (!token && !onLogin) {
+    // 공개 화면(로그인, 상담 신청 폼)은 인증 게이트에서 제외
+    const onPublic = segments[0] === 'login' || segments[0] === 'apply';
+    if (!token && !onPublic) {
       router.replace('/login');
-    } else if (token && onLogin) {
+    } else if (token && segments[0] === 'login') {
       router.replace('/');
     }
   }, [token, initializing, segments, router]);
@@ -36,6 +37,7 @@ function RootNavigator() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="login" />
+      <Stack.Screen name="apply/[token]" />
       <Stack.Screen name="customer/[id]/index" options={{ headerShown: true, title: '고객 상세' }} />
       <Stack.Screen
         name="customer/[id]/edit"

@@ -1,0 +1,24 @@
+import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+
+export class ApplyLeadDto {
+  @IsString()
+  @MinLength(1)
+  @MaxLength(50)
+  name!: string;
+
+  @IsString()
+  @MinLength(1)
+  @MaxLength(30)
+  phone!: string;
+
+  /** 관심 보험 (예: 건강보험) */
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  interest?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  message?: string;
+}

@@ -63,6 +63,7 @@ src/
 │   ├── report.tsx             주간 리포트 (모달) — GET /ai/report/weekly (홈 헤더에서 진입)
 │   ├── tags.tsx               태그 관리 (모달) — 목록/이름변경(prompt)/삭제 (고객 헤더에서 진입)
 │   ├── news.tsx               오늘의 뉴스 (모달) — GET /news/today, 지수·섹션별 뉴스 (홈 카드에서 진입)
+│   ├── apply/[token].tsx      공개 상담 신청 폼 (비로그인) — POST /public/apply/:token → 잠재고객 유입
 │   └── (tabs)/
 │       ├── _layout.tsx     하단 5탭 (홈·고객·AI추천·일정·메뉴, Ionicons)
 │       ├── index.tsx       홈 — /ai/dashboard (카드 탭 → 상세)

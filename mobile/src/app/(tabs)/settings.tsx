@@ -1,3 +1,4 @@
+import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, Switch, View } from 'react-native';
@@ -12,7 +13,7 @@ import {
   type AiRecommendationFrequency,
   type UserPreferences,
 } from '@/lib/api';
-import { API_BASE_URL } from '@/lib/config';
+import { API_BASE_URL, APPLY_BASE_URL } from '@/lib/config';
 import { useAuth } from '@/lib/auth';
 import { useAsync } from '@/lib/use-async';
 
@@ -60,6 +61,31 @@ export default function SettingsScreen() {
   const { data: prefs, error, reload } = useAsync(() => api.preferences(), []);
   const [local, setLocal] = useState<UserPreferences | null>(null);
   const current = local ?? prefs;
+
+  const { data: applyLink, reload: reloadApplyLink } = useAsync(() => api.applyLink(), []);
+  const applyUrl = applyLink ? `${APPLY_BASE_URL}/apply/${applyLink.token}` : '';
+
+  const copyApplyUrl = async () => {
+    if (!applyUrl) return;
+    await Clipboard.setStringAsync(applyUrl);
+    Alert.alert('복사됨', '상담 신청 링크를 복사했습니다.');
+  };
+
+  const rotateApplyUrl = async () => {
+    const ok = await confirm({
+      title: '새 링크 발급',
+      message: '기존 링크는 즉시 사용할 수 없게 됩니다.',
+      confirmLabel: '발급',
+      destructive: true,
+    });
+    if (!ok) return;
+    try {
+      await api.rotateApplyLink();
+      reloadApplyLink();
+    } catch (e) {
+      Alert.alert('오류', e instanceof Error ? e.message : '발급 실패');
+    }
+  };
 
   const patch = useCallback(
     async (p: Partial<UserPreferences>) => {
@@ -204,6 +230,18 @@ export default function SettingsScreen() {
         </Card>
 
         <Card>
+          <ThemedText type="smallBold">상담 신청 링크</ThemedText>
+          <Muted>이 링크를 공유하면 신청자가 자동으로 잠재고객으로 등록됩니다.</Muted>
+          <ThemedText type="small" selectable style={styles.link}>
+            {applyUrl || '불러오는 중…'}
+          </ThemedText>
+          <View style={styles.linkBtns}>
+            <Button label="복사" variant="secondary" onPress={copyApplyUrl} />
+            <Button label="새 링크 발급" variant="secondary" onPress={rotateApplyUrl} />
+          </View>
+        </Card>
+
+        <Card>
           <ThemedText type="smallBold">연결</ThemedText>
           <Row label="API 서버" value={API_BASE_URL} />
         </Card>
@@ -230,5 +268,7 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   value: { flexShrink: 1, textAlign: 'right' },
+  link: { fontFamily: 'monospace' },
+  linkBtns: { flexDirection: 'row', gap: Spacing.two },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.one },
 });

@@ -457,6 +457,45 @@ describe('CRM flow (e2e): auth → customer → consultation → AI', () => {
     userA.password = newPassword;
   });
 
+  // --- 공개 상담 신청 링크 ------------------------------------------
+  it('상담 신청 링크 발급 → 공개 폼 제출 → 잠재고객 유입 → 재발급', async () => {
+    const link = await http.get('/api/me/apply-link').set(auth(tokenA)).expect(200);
+    const token: string = link.body.token;
+    expect(token).toEqual(expect.any(String));
+
+    // 공개 폼 정보 (인증 없이 접근)
+    const info = await http.get(`/api/public/apply/${token}`).expect(200);
+    expect(info.body.agentName).toBe(userA.name);
+    await http.get('/api/public/apply/not-a-real-token').expect(404);
+
+    // 제출 → 잠재고객 생성
+    await http
+      .post(`/api/public/apply/${token}`)
+      .send({ name: '방문객', phone: '010-7777-0000', interest: '건강보험', message: '연락 바랍니다' })
+      .expect(201);
+    await http
+      .post('/api/public/apply/not-a-real-token')
+      .send({ name: 'x', phone: 'y' })
+      .expect(404);
+
+    const list = await http
+      .get('/api/customers')
+      .query({ q: '방문객' })
+      .set(auth(tokenA))
+      .expect(200);
+    const lead = list.body.items.find((c: { name: string }) => c.name === '방문객');
+    expect(lead).toBeTruthy();
+    expect(lead.grade).toBe('POTENTIAL');
+    expect(lead.tags.map((t: { tag: string }) => t.tag)).toEqual(
+      expect.arrayContaining(['잠재고객', '상담신청']),
+    );
+
+    // 재발급 → 옛 토큰 무효
+    const rotated = await http.post('/api/me/apply-link/rotate').set(auth(tokenA)).expect(201);
+    expect(rotated.body.token).not.toBe(token);
+    await http.get(`/api/public/apply/${token}`).expect(404);
+  });
+
   // --- OAuth ----------------------------------------------------------
   it('OAuth — 미구성 서버는 401, 형식 오류는 400', async () => {
     // idToken 누락 → 400 (validation)

@@ -85,6 +85,9 @@ model User {
   /// 사용자 설정 (PRD 21) - 알림 on/off, AI 문자 기본 말투 등
   preferences Json @default("{}")
 
+  /// 공개 상담 신청 링크 토큰 (/apply/:publicToken)
+  publicToken String? @unique
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

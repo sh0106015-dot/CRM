@@ -8,6 +8,7 @@ import { CustomersModule } from './customers/customers.module';
 import { NewsModule } from './news/news.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { PublicModule } from './public/public.module';
 import { SchedulesModule } from './schedules/schedules.module';
 import { TagsModule } from './tags/tags.module';
 import { UsersModule } from './users/users.module';
@@ -26,6 +27,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     TagsModule,
     NewsModule,
+    PublicModule,
   ],
 })
 export class AppModule {}

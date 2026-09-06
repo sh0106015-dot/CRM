@@ -62,7 +62,15 @@ OAuth 는 앱에서 네이티브 로그인 → 공급자 ID 토큰을 서버로 
 | GET | `/me/preferences` | 설정 (기본값 위에 저장분 병합) |
 | PATCH | `/me/preferences` | 설정 부분 변경 (`dailyDigestEnabled`, `notify*`, `aiMessageTone`, `aiRecommendationFrequency`) |
 | PATCH | `/me/password` | 비밀번호 변경 `{ currentPassword, newPassword }` (소셜 계정 400, 오답 401) |
+| GET | `/me/apply-link` | 공개 상담 신청 링크 토큰 (없으면 발급) |
+| POST | `/me/apply-link/rotate` | 링크 토큰 재발급 (기존 무효화) |
 | DELETE | `/me` | 회원탈퇴 (관련 데이터 cascade 삭제) |
+
+### 공개 — `PublicModule` (인증 불필요)
+| Method | Path | 설명 |
+| --- | --- | --- |
+| GET | `/public/apply/:token` | 상담 신청 폼용 설계사 정보 `{ agentName }` (유효하지 않은 토큰 404) |
+| POST | `/public/apply/:token` | 상담 신청 `{ name, phone, interest?, message? }` → 해당 설계사의 잠재고객 생성 (태그 `잠재고객`·`상담신청`, `grade: POTENTIAL`, `consultStatus: SCHEDULED`) |
 
 - `dailyDigestEnabled: false` 사용자는 09:00 다이제스트 크론에서 제외된다.
 - 설정은 `users.preferences` JSON 컬럼에 저장 (마이그레이션 `20260830074711_user_preferences`).

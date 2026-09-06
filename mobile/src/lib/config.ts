@@ -32,3 +32,14 @@ function resolveApiBaseUrl(): string {
 }
 
 export const API_BASE_URL = resolveApiBaseUrl();
+
+/** 공개 상담 신청 링크(/apply/:token)의 베이스 URL */
+export const APPLY_BASE_URL = (() => {
+  const fromEnv = process.env.EXPO_PUBLIC_WEB_URL;
+  if (fromEnv) return fromEnv.replace(/\/$/, '');
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  // 네이티브: API 호스트에서 /api 를 떼고 웹 포트(8081)로
+  return API_BASE_URL.replace(/:\d+\/api$/, ':8081').replace(/\/api$/, '');
+})();

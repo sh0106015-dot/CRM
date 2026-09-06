@@ -271,6 +271,22 @@ export const api = {
       body: { currentPassword, newPassword },
     }),
 
+  applyLink: () => request<{ token: string }>('/me/apply-link'),
+  rotateApplyLink: () =>
+    request<{ token: string }>('/me/apply-link/rotate', { method: 'POST' }),
+
+  // 공개 (인증 불필요) - 상담 신청 폼
+  applyInfo: (token: string) =>
+    request<{ agentName: string }>(`/public/apply/${encodeURIComponent(token)}`),
+  submitApply: (
+    token: string,
+    body: { name: string; phone: string; interest?: string; message?: string },
+  ) =>
+    request<{ ok: boolean }>(`/public/apply/${encodeURIComponent(token)}`, {
+      method: 'POST',
+      body,
+    }),
+
   deleteAccount: () => request<{ deleted: boolean }>('/me', { method: 'DELETE' }),
 
   tags: () => request<TagSummary[]>('/tags'),

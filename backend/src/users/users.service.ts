@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
+import { newApplyToken } from '../public/public.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
 import { mergePreferences, UserPreferences } from './user-preferences';
@@ -80,6 +81,26 @@ export class UsersService {
       data: { passwordHash: await bcrypt.hash(dto.newPassword, SALT_ROUNDS) },
     });
     return { changed: true };
+  }
+
+  /** 공개 상담 신청 링크 토큰 (없으면 발급) */
+  async getApplyToken(userId: string): Promise<{ token: string }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { publicToken: true },
+    });
+    if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다.');
+    if (user.publicToken) return { token: user.publicToken };
+    const token = newApplyToken();
+    await this.prisma.user.update({ where: { id: userId }, data: { publicToken: token } });
+    return { token };
+  }
+
+  /** 링크 토큰 재발급 (기존 링크 무효화) */
+  async rotateApplyToken(userId: string): Promise<{ token: string }> {
+    const token = newApplyToken();
+    await this.prisma.user.update({ where: { id: userId }, data: { publicToken: token } });
+    return { token };
   }
 
   async deleteAccount(userId: string) {

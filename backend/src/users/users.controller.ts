@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Patch, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -34,6 +42,17 @@ export class UsersController {
     @Body() dto: ChangePasswordDto,
   ) {
     return this.users.changePassword(userId, dto);
+  }
+
+  /** 공개 상담 신청 링크 토큰 (없으면 발급) */
+  @Get('apply-link')
+  applyLink(@CurrentUser('userId') userId: string) {
+    return this.users.getApplyToken(userId);
+  }
+
+  @Post('apply-link/rotate')
+  rotateApplyLink(@CurrentUser('userId') userId: string) {
+    return this.users.rotateApplyToken(userId);
   }
 
   /** 회원탈퇴 (PRD 21) - 관련 데이터 전체 cascade 삭제 */
