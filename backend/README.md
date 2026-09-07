@@ -43,6 +43,8 @@ docker run --name crm-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=crm 
 
 ## API 개요 (`/api` prefix)
 
+OpenAPI 문서: 개발 서버 실행 후 **`http://localhost:3000/api/docs`** (스펙 JSON: `/api/docs-json`).
+
 ### 인증 — `AuthModule`
 | Method | Path | 설명 |
 | --- | --- | --- |

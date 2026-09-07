@@ -1,8 +1,11 @@
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { NewsService } from './news.service';
 
 @UseGuards(JwtAuthGuard)
+@ApiTags('뉴스')
+@ApiBearerAuth()
 @Controller('news')
 export class NewsController {
   constructor(private readonly news: NewsService) {}

@@ -1,3 +1,4 @@
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
@@ -15,6 +16,8 @@ import { CreateConsultationDto } from './dto/create-consultation.dto';
 import { UpdateConsultationDto } from './dto/update-consultation.dto';
 
 @UseGuards(JwtAuthGuard)
+@ApiTags('상담')
+@ApiBearerAuth()
 @Controller('customers/:customerId/consultations')
 export class ConsultationsController {
   constructor(private readonly consultations: ConsultationsService) {}

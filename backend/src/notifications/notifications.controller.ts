@@ -1,3 +1,4 @@
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
@@ -13,6 +14,8 @@ import { RegisterDeviceDto } from './dto/register-device.dto';
 import { NotificationsService } from './notifications.service';
 
 @UseGuards(JwtAuthGuard)
+@ApiTags('알림')
+@ApiBearerAuth()
 @Controller()
 export class NotificationsController {
   constructor(

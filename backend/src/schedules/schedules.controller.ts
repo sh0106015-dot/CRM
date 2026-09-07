@@ -1,3 +1,4 @@
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
@@ -16,6 +17,8 @@ import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { SchedulesService } from './schedules.service';
 
 @UseGuards(JwtAuthGuard)
+@ApiTags('일정')
+@ApiBearerAuth()
 @Controller('schedules')
 export class SchedulesController {
   constructor(private readonly schedules: SchedulesService) {}

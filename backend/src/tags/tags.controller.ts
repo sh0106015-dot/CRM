@@ -1,3 +1,4 @@
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
@@ -14,6 +15,8 @@ import { BulkTagDto, RenameTagDto } from './dto/tag.dto';
 import { TagsService } from './tags.service';
 
 @UseGuards(JwtAuthGuard)
+@ApiTags('태그')
+@ApiBearerAuth()
 @Controller('tags')
 export class TagsController {
   constructor(private readonly tags: TagsService) {}

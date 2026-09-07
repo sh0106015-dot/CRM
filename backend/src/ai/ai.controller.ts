@@ -1,3 +1,4 @@
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
@@ -14,6 +15,8 @@ import { SummarizeDocumentDto } from './dto/summarize-document.dto';
 import { SummarizeDto } from './dto/summarize.dto';
 
 @UseGuards(JwtAuthGuard)
+@ApiTags('AI')
+@ApiBearerAuth()
 @Controller('ai')
 export class AiController {
   constructor(private readonly ai: AiService) {}
